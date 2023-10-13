@@ -97,9 +97,7 @@ class GridWorld:
 
 
         # still need to return all the stuff needed for deep learning like reward, transition, game_won?, etc
-
-
-    
+        
     def visualize_grid(self):
         """plots the current state of the grid"""
 
@@ -110,6 +108,17 @@ class GridWorld:
         plt.imshow(self.state, cmap=cmap)
         plt.show()
 
+    def grid_image(self):
+        """ generates an image of the grid (grid.width, grid.height, 3) (3 channels for rbg) """
+
+        grid_image = np.array([self.state, self.state, self.state]).T
+
+        colors = [[202,202,202], [98, 81, 81], [229, 58, 58], [225, 228, 0]]
+        
+        for i in range(len(colors)):
+            grid_image[grid_image[:,:,0] == i] = colors[i]
+
+        return grid_image
         
 
          
