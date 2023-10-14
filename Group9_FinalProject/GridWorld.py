@@ -26,7 +26,18 @@ class GridWorld:
         self.agent.pos = Position(0,0)
         self.num_walls = 5
         self.state = self.generate_grid()
+        self.action_space = [UP, RIGHT, DOWN, LEFT]
+        self.num_states = self.width * self.height
     
+    def reset(self, seed, agent_pos = Position(0,0)):
+        """ 
+        resets the state of the grid and moves the agent to start position 
+        (agent_pos) 
+        """
+        self.agent.pos = agent_pos
+        self.seed = seed
+        self.state = self.generate_grid()
+
 
     def generate_grid(self) -> np.ndarray:
         """Generate the grid environment."""
@@ -52,6 +63,18 @@ class GridWorld:
                 walls_placed+=1
 
         return grid
+    
+    def check_game_won(self):
+        """ checks if the agent is in the win state"""
+        return self.agent.pos.x == self.win_state.x and \
+            self.agent.pos.y == self.win_state.y
+    
+    def reward(self):
+        """ calculates the reward based on the current state of the gridworld """
+        if self.check_game_won():
+            return 10
+        else:
+            return -1
     
     def check_possible(self, action):
         """checks if an action is possible given the current state"""
@@ -86,8 +109,6 @@ class GridWorld:
 
         return new_pos
 
-
-
     def step(self, action):
         """Transition the current state into the next state given an action"""
         if(self.check_possible(action)):
@@ -95,9 +116,8 @@ class GridWorld:
             self.agent.pos = self.update_position(self.agent.pos, action)
             self.state[self.agent.pos.y, self.agent.pos.x] = AGENT
 
+        return (self.state, self.reward(), self.check_game_won())
 
-        # still need to return all the stuff needed for deep learning like reward, transition, game_won?, etc
-        
     def visualize_grid(self):
         """plots the current state of the grid"""
 
