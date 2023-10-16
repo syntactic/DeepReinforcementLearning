@@ -56,10 +56,12 @@ class DQN:
 
             playing = True
             moves = 0
-            while(playing):
-                # track game rewards
-                game_rewards = np.empty((self.max_moves_per_game,1))
 
+            # track game rewards 
+            game_rewards = np.empty((self.max_moves_per_game,1))
+
+            while(playing):
+                
                 # get qval from the model
                 qval_tensor = self.model(state)
                 qval = qval_tensor.data.numpy() 
@@ -77,7 +79,6 @@ class DQN:
                 # take the action
                 [next_state, reward, game_won] = self.game.step(action)
                 
-
                 # reformat the next state so that it can be inputted into the model
                 next_state = next_state.reshape((1, self.game.num_states)) + \
                     np.random.rand(1, self.game.num_states)/10.0
@@ -89,23 +90,23 @@ class DQN:
                 maxQ = torch.max(newQ) 
 
                 # calculate reward with decay 
-                # (though not sure if I agree with the else statement)
-                if reward == -1:                               
+                if not game_won:                           
                     Y = reward + (self.gamma * maxQ)
                 else:
                     Y = reward
+                
                 
                 # append current reward to list
                 game_rewards[moves] = reward
 
 
-                Y = torch.Tensor([Y]).detach()
-                X = qval_tensor.squeeze()[action_idx]
+                output = torch.Tensor([Y]).detach()
+                input = qval_tensor.squeeze()[action_idx]
 
-                loss = self.loss_fn(X, Y)
+                loss = self.loss_fn(input, output)
                 self.optimizer.zero_grad()
                 loss.backward()
-                self.losses[e] = loss.item()
+                self.losses[e] = loss.item() # change this collect losses over the game
                 self.optimizer.step()
 
                 # update the state to the next_state value
@@ -123,6 +124,7 @@ class DQN:
 
             # record the current training step reward
             self.rewards[e] = np.nanmean(game_rewards)
+
         self.save_model()
 
     def test(self, num_games = 10, max_moves = 30):
@@ -164,24 +166,23 @@ class DQN:
                 # choose the next action (random or on policy based on epsilon)
                     # currently, the agent can choose impossible actions, which
                     # will result in no change to the state
-                if (random.random() < self.epsilon):
-                    action_idx = np.random.randint(0,len(self.game.action_space))
-                else:
-                    action_idx = np.argmax(qval)
                 
+                action_idx = np.argmax(qval)
+                #action_idx = np.random.randint(0,len(self.game.action_space))
+
                 action = self.game.action_space[action_idx]
 
                 # take the action
                 [next_state, reward, game_won] = self.game.step(action)
 
                 # record current agent position and reward
-
                 results[g, move, 0] = self.game.agent.pos.x
                 results[g, move, 1] = self.game.agent.pos.y
                 game_rewards[move] = reward
 
                 if game_won or move == max_moves - 1:
                     playing = False
+                    # results (num_games, max_moves, 2(x,y)) 
                     results[g,move:max_moves,0] = self.game.agent.pos.x
                     results[g,move:max_moves,1] = self.game.agent.pos.y
                 

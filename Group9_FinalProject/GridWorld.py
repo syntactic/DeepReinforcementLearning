@@ -94,7 +94,6 @@ class GridWorld:
         
         return possible
         
-
     def update_position(self, pos, action):
         """ applys the given action to a position pos"""
 
