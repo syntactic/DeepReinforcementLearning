@@ -65,6 +65,7 @@ class DQN:
                 # get qval from the model
                 qval_tensor = self.model(state)
                 qval = qval_tensor.data.numpy() 
+                
 
                 # choose the next action (random or on policy based on epsilon)
                     # currently, the agent can choose impossible actions, which
@@ -176,15 +177,15 @@ class DQN:
                 [next_state, reward, game_won] = self.game.step(action)
 
                 # record current agent position and reward
-                results[g, move, 0] = self.game.agent.pos.x
-                results[g, move, 1] = self.game.agent.pos.y
+                results[g, move, 0] = self.game.player_pos.x
+                results[g, move, 1] = self.game.player_pos.y
                 game_rewards[move] = reward
 
                 if game_won or move == max_moves - 1:
                     playing = False
                     # results (num_games, max_moves, 2(x,y)) 
-                    results[g,move:max_moves,0] = self.game.agent.pos.x
-                    results[g,move:max_moves,1] = self.game.agent.pos.y
+                    results[g,move:max_moves,0] = self.game.player_pos.x
+                    results[g,move:max_moves,1] = self.game.player_pos.y
                 
                 move +=1
 

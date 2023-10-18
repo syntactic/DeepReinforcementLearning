@@ -6,7 +6,7 @@ from util_classes import *
 # tile types
 FLOOR = 0
 WALL = 1
-AGENT = 2
+PLAYER = 2
 WIN = 3
 
 # possible actions
@@ -17,26 +17,28 @@ LEFT = 3
 
 class GridWorld:
 
-    def __init__(self, agent, width, height, seed=0):
-        self.agent = agent
+    def __init__(self, width=10, height=10, seed=0, max_moves_per_game=100):
         self.width = width
         self.height = height
         self.seed = seed
         self.win_state = Position(width-1, height-1)
-        self.agent.pos = Position(0,0)
+        self.player_pos = Position(0,0)
         self.num_walls = 5
         self.state = self.generate_grid()
-        self.action_space = [UP, RIGHT, DOWN, LEFT]
+        self.action_space = np.array([UP, RIGHT, DOWN, LEFT])
         self.num_states = self.width * self.height
+        self.max_moves_per_game = max_moves_per_game
+        self.moves_made = 0
     
-    def reset(self, seed, agent_pos = Position(0,0)):
+    def reset(self, seed = 0, player_pos = Position(0,0)):
         """ 
         resets the state of the grid and moves the agent to start position 
         (agent_pos) 
         """
-        self.agent.pos = agent_pos
+        self.player_pos = player_pos
         self.seed = seed
         self.state = self.generate_grid()
+        self.moves_made = 0
 
 
     def generate_grid(self) -> np.ndarray:
@@ -46,7 +48,7 @@ class GridWorld:
         grid = np.zeros((self.width, self.height))
 
         # place agent 
-        grid[self.agent.pos.x, self.agent.pos.y] = AGENT
+        grid[self.player_pos.x, self.player_pos.y] = PLAYER
 
         # place win tile 
         grid[self.win_state.x, self.win_state.y] = WIN
@@ -64,14 +66,16 @@ class GridWorld:
 
         return grid
     
-    def check_game_won(self):
-        """ checks if the agent is in the win state"""
-        return self.agent.pos.x == self.win_state.x and \
-            self.agent.pos.y == self.win_state.y
+    def check_game_over(self):
+        """ checks if the player is in the win state or if the max moves were taken"""
+        return (self.player_pos.x == self.win_state.x and \
+            self.player_pos.y == self.win_state.y) or \
+            self.moves_made >= self.max_moves_per_game
     
     def reward(self):
         """ calculates the reward based on the current state of the gridworld """
-        if self.check_game_won():
+        if (self.player_pos.x == self.win_state.x and \
+            self.player_pos.y == self.win_state.y):
             return 10
         else:
             return -1
@@ -80,8 +84,8 @@ class GridWorld:
         """checks if an action is possible given the current state"""
         possible = False
 
-        # get current position of agent
-        curr_pos = self.agent.pos
+        # get current position of the player
+        curr_pos = self.player_pos
 
         # get new position resulting from action
         new_pos = self.update_position(curr_pos, action)
@@ -110,12 +114,26 @@ class GridWorld:
 
     def step(self, action):
         """Transition the current state into the next state given an action"""
-        if(self.check_possible(action)):
-            self.state[self.agent.pos.y, self.agent.pos.x] = FLOOR
-            self.agent.pos = self.update_position(self.agent.pos, action)
-            self.state[self.agent.pos.y, self.agent.pos.x] = AGENT
+        self.moves_made +=1
 
-        return (self.state, self.reward(), self.check_game_won())
+        if(self.check_possible(action)):
+            self.state[self.player_pos.y, self.player_pos.x] = FLOOR
+            self.player_pos = self.update_position(self.player_pos, action)
+            self.state[self.player_pos.y, self.player_pos.x] = PLAYER
+
+        return (self.state, self.reward(), self.check_game_over())
+    
+    def get_state(self):
+        """ return state of the game"""
+        return self.state
+    
+    def get_player_position(self):
+        """ returns the player position """
+        return self.player_pos
+    
+    def set_player_position(self, player_pos):
+        """ sets the player position """
+        self.player_pos = player_pos
 
     def visualize_grid(self):
         """plots the current state of the grid"""

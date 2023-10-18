@@ -4,41 +4,41 @@ import matplotlib.pyplot as plt
 from DQN import DQN
 from GridWorld import GridWorld
 from Agent import Agent
+from DQNAgent import DQNAgent
+from Orchestrator import Orchestrator
 
 import torch
 
+def init_grid_model(input_size, action_space):
+        """ provides an default model for the gridworld problem """
+        l1 = input_size
+        l2 = 150
+        l3 = 100
+        l4 = len(action_space)
+ 
+        model = torch.nn.Sequential(
+            torch.nn.Linear(l1, l2),
+            torch.nn.ReLU(),
+            torch.nn.Linear(l2, l3),
+            torch.nn.ReLU(),
+            torch.nn.Linear(l3,l4)
+        )
 
-### NOTES 
-"""
-- there seems to be some difference in the way I am calcuting average reward across 
-    game for training versus testing -> should check this out and fix it
-- right now, the whole design is not right because the agent class does nothing, 
-    it is all controlled through DQN and GridWorld
-- Tim suggests using some kind of orchestrator that controls the gridworld, and the Agent (which could be a vanilla dqn,
-    a random agent, IQ learn agent, expert, etc)
-- check if it makes sense to use maxQ in reward calculation
-- change to accumulate losses over each game and take an average
-- consider CNN because it may capture position information rather than fully-connected layers
+        return model
 
-"""
 def main():
-    NUM_EPOCHS = 500
-    GAMMA = 0.9
+    NUM_GAMES = 1000
     MAX_MOVES_PER_GAME = 100
-    dqn = DQN(GridWorld(Agent(), 10, 10), 
-              num_epochs=NUM_EPOCHS, 
-              gamma=GAMMA, 
-              max_moves_per_game=MAX_MOVES_PER_GAME)
+    game = GridWorld(10, 10, max_moves_per_game=MAX_MOVES_PER_GAME)
+    model = init_grid_model(game.num_states, game.action_space) # change this to use get methods
+    agent = DQNAgent(model=model, action_space=game.action_space)
 
-    print(dqn.model)
+    orchestrator = Orchestrator(game=game, agent=agent, num_games=NUM_GAMES)
+    
+    orchestrator.play()
 
-    dqn.train()
+    orchestrator.agent.print_results()
 
-    dqn.plot_training_results(save=True, name='training1')
-
-    seeds, rewards, results = dqn.test(num_games=100, max_moves=100)
-
-    dqn.plot_test_results(seeds, rewards, results)
 
 if __name__ == "__main__":
     main()
