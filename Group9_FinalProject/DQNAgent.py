@@ -6,6 +6,7 @@ from Agent import Agent
 
 class DQNAgent(Agent):
     def __init__(self, model, action_space:np.ndarray, gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1):
+        # call the super
         self.action_space = action_space
         self.state = float("nan")
         self.next_state = float("nan")
@@ -24,7 +25,7 @@ class DQNAgent(Agent):
         self.loss_bucket = [] # temporarily holds losses for averaging
         self.losses = [] # holds average loss for each game trained on
 
-        print(self.model)
+        #print(self.model)
     
     def format_state(self, state):
         # TODO fix the reshape once we switch to CNN
@@ -66,9 +67,11 @@ class DQNAgent(Agent):
 
         # TODO collect information in a buffer to allow for the possibility of 
         # training after x number of steps instead of after every step
+        # TODO think about parameters to control whether the agent is training or testing, etc
         self.train()
 
     def train(self):
+        # TODO test if it is more efficient to save qval_tensor instead of running the model again
         qval_tensor = self.model(self.state)
         
         with torch.no_grad():
@@ -91,8 +94,10 @@ class DQNAgent(Agent):
 
         # track loss from training
         self.loss_bucket.append(loss.item())
+
         if self.game_over:
             self.losses.append(np.mean(self.loss_bucket))
+
             # epsilon decay
             if self.epsilon > 0.1:
                 self.epsilon = self.epsilon * self.epsilon_decay
@@ -119,12 +124,11 @@ class DQNAgent(Agent):
         self.plot_losses()
         
         if(save):
-            self.save_result()
+            self.save_results()
 
         plt.show()
 
-    def save_result(self):
+    def save_results(self):
         """ saves the trajectory of the agent and the model"""
-
         pass
 

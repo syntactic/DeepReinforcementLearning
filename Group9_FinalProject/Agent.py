@@ -32,10 +32,10 @@ class Agent:
         a new game. Note, this does NOT reset any learning from the previous
         game, if applicable.
     
-    print_result():
+    print_results():
         plots current results of the agent (depends on agent what type of results)
 
-    save_result():
+    save_results():
         This saves the data relevant to the agent. For ex,
         for a human agent, it saves the trajectories of the games, while for a 
         DQN agent, it will save the trained model
@@ -69,9 +69,8 @@ class Agent:
         self.reward = float("nan")
         self.game_over = float("nan")
     
-    def print_result(self):
+    def print_results(self):
         pass
-    def save_result(self):
+    def save_results(self):
         """ saves the trajectory of the agent """
-
         pass

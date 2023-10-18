@@ -36,11 +36,9 @@ class Orchestrator:
         for g in range(self.num_games):
             print('Playing game', g, '... ', end='')
 
-            # how to initialize the agent and game?
-
             # intialize the game
             self.game.reset()
-            self.agent.reset()
+            self.agent.reset() 
 
             # get initial state and whether game is over
             init_state = self.game.get_state()
@@ -65,7 +63,7 @@ class Orchestrator:
                 playing = not game_over
 
                 if not playing:
-                    self.agent.save_result()
+                    self.agent.save_results()
                     print(self.game.moves_made, " ", end="")
                     print('Game Done.')
 
