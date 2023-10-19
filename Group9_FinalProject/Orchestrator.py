@@ -4,6 +4,7 @@ from matplotlib import colors
 from Agent import Agent
 from GridWorld import GridWorld
 from util_classes import *
+import pickle
 
 
 """
@@ -30,6 +31,7 @@ class Orchestrator:
         self.game = game
         self.agent = agent
         self.num_games = num_games
+        self.trajectories = [] # should trajectories belong to agents?
     
     def play(self):
 
@@ -39,6 +41,7 @@ class Orchestrator:
             # intialize the game
             self.game.reset()
             self.agent.reset() 
+            self.trajectories.append([])
 
             # get initial state and whether game is over
             init_state = self.game.get_state()
@@ -55,6 +58,9 @@ class Orchestrator:
 
                 # get next_state, reward, and whether the game was won
                 next_state, reward, game_over = self.game.step(action)
+
+                # add data to trajectories
+                self.trajectories[-1].append((state, action, reward, next_state, game_over))
 
                 # inform the agent of the result
                 self.agent.inform_result(next_state, reward, game_over)
@@ -74,4 +80,13 @@ class Orchestrator:
     
     def set_agent(self, agent):
         """ sets the agent controlled by the orchestrator """
+        self.agent = agent
 
+    def save_trajectories(self, filepath='trajectories.pkl'):
+        with open(filepath, 'wb') as file:
+            states, actions, rewards, next_states, dones = split_trajectories(self.trajectories)
+            pickle.dump({'state':states,
+                         'actions':actions,
+                         'rewards':rewards,
+                         'next_states':next_states,
+                         'dones':dones}, file)

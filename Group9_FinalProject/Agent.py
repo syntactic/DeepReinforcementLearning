@@ -46,6 +46,7 @@ class Agent:
         self.next_state = float("nan")
         self.reward = float("nan")
         self.game_over = float("nan")
+        self.action = float("nan")
     
     def get_action(self, state):
 
@@ -53,7 +54,8 @@ class Agent:
         # that this random sampling does not interfere/ interact with seed 
         # setting studd elsewhere
         self.state = state
-        return np.random.choice(self.action_space, size=1)[0]
+        self.action = np.random.choice(self.action_space, size=1)[0]
+        return self.action
 
     def inform_result(self, next_state, reward, game_over):
 

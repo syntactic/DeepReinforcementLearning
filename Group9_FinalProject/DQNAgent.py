@@ -6,13 +6,7 @@ from Agent import Agent
 
 class DQNAgent(Agent):
     def __init__(self, model, action_space:np.ndarray, gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1):
-        # call the super
-        self.action_space = action_space
-        self.state = float("nan")
-        self.next_state = float("nan")
-        self.reward = float("nan")
-        self.game_over = float("nan")
-        self.action = float("nan")
+        super().__init__(action_space)
 
         self.model = model
         self.loss_fn = torch.nn.MSELoss()

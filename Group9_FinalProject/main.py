@@ -37,6 +37,7 @@ def main():
     orchestrator = Orchestrator(game=game, agent=agent, num_games=NUM_GAMES)
     
     orchestrator.play()
+    orchestrator.save_trajectories()
 
     agent.print_results()
 
