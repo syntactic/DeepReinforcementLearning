@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import torch
+from utils import Buffer
 from Agent import Agent
 
 class DQNAgent(Agent):
@@ -18,6 +19,7 @@ class DQNAgent(Agent):
         self.epsilon_floor = epsilon_floor
         self.loss_bucket = [] # temporarily holds losses for averaging
         self.losses = [] # holds average loss for each game trained on
+        self.buffer = Buffer()
 
         #print(self.model)
     

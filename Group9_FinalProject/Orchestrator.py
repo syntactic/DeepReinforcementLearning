@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from Agent import Agent
 from GridWorld import GridWorld
-from util_classes import *
+from utils import *
 import pickle
 
 
@@ -85,7 +85,7 @@ class Orchestrator:
     def save_trajectories(self, filepath='trajectories.pkl'):
         with open(filepath, 'wb') as file:
             states, actions, rewards, next_states, dones = split_trajectories(self.trajectories)
-            pickle.dump({'state':states,
+            pickle.dump({'states':states,
                          'actions':actions,
                          'rewards':rewards,
                          'next_states':next_states,
