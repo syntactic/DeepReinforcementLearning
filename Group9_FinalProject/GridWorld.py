@@ -1,7 +1,10 @@
 import numpy as np
+import random
+import time
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from utils import *
+
 
 # tile types
 FLOOR = 0
@@ -17,12 +20,15 @@ LEFT = 3
 
 class GridWorld:
 
-    def __init__(self, width=10, height=10, seed=0, max_moves_per_game=100):
+    def __init__(self, width=10, height=10, random_board=False, random_start=False, seed=0, max_moves_per_game=100):
         self.width = width
         self.height = height
+        self.random_start = random_start
+        self.random_board = random_board
+        self.time_start = int(time.time()) # used for random seed setting
         self.seed = seed
         self.win_state = Position(width-1, height-1)
-        self.player_pos = Position(0,0)
+        self.player_pos = self.new_player_pos()
         self.num_walls = 5
         self.state = self.generate_grid()
         self.action_space = np.array([UP, RIGHT, DOWN, LEFT])
@@ -30,13 +36,26 @@ class GridWorld:
         self.max_moves_per_game = max_moves_per_game
         self.moves_made = 0
     
-    def reset(self, seed = 0, player_pos = Position(0,0)):
+    def new_player_pos(self, static=Position(1,0)):
+        if self.random_start:
+            while True:
+                np.random.seed(int((time.time() - self.time_start)))
+                x = np.random.choice(self.width, 1)
+                y = np.random.choice(self.height, 1)
+                if x != self.win_state.x or y != self.win_state.y:
+                    return Position(x,y)
+        else:
+            return static
+
+
+    def reset(self):
         """ 
         resets the state of the grid and moves the agent to start position 
         (agent_pos) 
         """
-        self.player_pos = player_pos
-        self.seed = seed
+        self.player_pos = self.new_player_pos()
+        if self.random_board:
+            self.seed += 1
         self.state = self.generate_grid()
         self.moves_made = 0
 
@@ -48,10 +67,35 @@ class GridWorld:
         grid = np.zeros((self.width, self.height))
 
         # place agent 
-        grid[self.player_pos.x, self.player_pos.y] = PLAYER
+        grid[self.player_pos.y, self.player_pos.x] = PLAYER
 
         # place win tile 
-        grid[self.win_state.x, self.win_state.y] = WIN
+        grid[self.win_state.y, self.win_state.x] = WIN
+
+        def check_win_blocked(grid, new_wall_x, new_wall_y):
+            """ 
+            checks if the win is still accessible with the placement of the new
+            wall
+
+            NOTE wondering whether this is necessary, because it doesn't check
+            if the agent has a path to the way anyway, only if the win is immediately
+            surrounded
+            """
+            win_x = self.win_state.x; win_y = self.win_state.y 
+
+            # pad the grid with wall tiles
+            g = np.pad(grid,(1,1), 'constant', constant_values=(WALL,WALL)) 
+
+            # add the new wall to the grid 
+            g[new_wall_y, new_wall_x] = WALL
+
+            # get sum of the tiles including and surrounding the win_state
+            sum_of_tiles = np.sum(np.sum(g[win_y-1:win_y+2, win_x-1:win_x+2]))
+
+            # return whether walls would completely surround the win by checking
+            # that the sum of WALL tiles + WIN is >= that case
+            return sum_of_tiles >= 8*WALL + WIN
+
 
         # randomly place walls
         np.random.seed(self.seed)
@@ -60,8 +104,8 @@ class GridWorld:
             x=np.random.choice(grid.shape[0], 1)
             y=np.random.choice(grid.shape[1], 1)
 
-            if(grid[x,y] == FLOOR):
-                grid[x,y] = WALL
+            if(grid[y,x] == FLOOR and not check_win_blocked(grid, x, y)):
+                grid[y,x] = WALL
                 walls_placed+=1
 
         return grid
@@ -115,12 +159,11 @@ class GridWorld:
     def step(self, action):
         """Transition the current state into the next state given an action"""
         self.moves_made +=1
-
         if(self.check_possible(action)):
             self.state[self.player_pos.y, self.player_pos.x] = FLOOR
             self.player_pos = self.update_position(self.player_pos, action)
             self.state[self.player_pos.y, self.player_pos.x] = PLAYER
-
+        
         return (self.state, self.reward(), self.check_game_over())
     
     def get_state(self):

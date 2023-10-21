@@ -40,13 +40,14 @@ class Agent:
         for a human agent, it saves the trajectories of the games, while for a 
         DQN agent, it will save the trained model
     """
-    def __init__(self, action_space:np.ndarray):
+    def __init__(self, action_space:np.ndarray, name:str="rand"):
+        self.name = name
         self.action_space = action_space
-        self.state = float("nan")
-        self.next_state = float("nan")
-        self.reward = float("nan")
-        self.game_over = float("nan")
-        self.action = float("nan")
+        self.state = None
+        self.next_state = None
+        self.reward = None
+        self.game_over = None
+        self.action = None
     
     def get_action(self, state):
 

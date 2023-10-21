@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from Agent import Agent
 from GridWorld import GridWorld
+from GameWindow import GameWindow
 from utils import *
 import pickle
 
@@ -24,17 +25,19 @@ Basic idea: feed it an agent, a game, and a number of games to play
 - some possible parameters: 
     - fixed/random game boards (or maybe that should be set as part of the GridWorld class)
 """
-
+# TODO , get rid of agent.save_results etc and the methods within Agent
 class Orchestrator:
 
-    def __init__(self, game:GridWorld, agent:Agent, num_games:int):
+    def __init__(self, game:GridWorld, agent:Agent, num_games:int, visualize:bool=False):
         self.game = game
         self.agent = agent
         self.num_games = num_games
         self.trajectories = [] # should trajectories belong to agents?
+        self.visualize = visualize
+        if self.visualize:
+            self.window = GameWindow()
     
     def play(self):
-
         for g in range(self.num_games):
             print('Playing game', g, '... ', end='')
 
@@ -49,6 +52,11 @@ class Orchestrator:
 
             # set state as init_state
             state = init_state
+
+            if self.visualize:
+                exit_games = self.visualize_game()
+                if exit_games:
+                    return None
 
             # play until the game is over
             while(playing):
@@ -70,10 +78,30 @@ class Orchestrator:
 
                 if not playing:
                     self.agent.save_results()
-                    print(self.game.moves_made, " ", end="")
-                    print('Game Done.')
+                    print("total moves:", self.game.moves_made, " ", end="")
+                    print('game over.')
 
+                if self.visualize:
+                    # draw game stuff
+                    # get an image of the current state of the grid (and upsample 50x to fill game space)
+                    exit_games = self.visualize_game()
+                    if exit_games:
+                        return None
 
+    def visualize_game(self):
+        # get an image of the current state of the grid (and upsample 50x to fill game space)
+        im = self.game.grid_image().repeat(50, axis=0).repeat(50, axis=1)
+
+        # draw the gameboard
+        self.window.draw(im)
+
+        # flips the display so that everything we want to draw is drawn on the screen
+        self.window.flip() 
+
+        # check if the window was closed
+        exit_games = self.window.check_quit()
+
+        return exit_games
     def set_game(self, game):
         """ sets the game controlled by the orchestrator """
         self.game = game

@@ -6,9 +6,8 @@ from utils import Buffer
 from Agent import Agent
 
 class DQNAgent(Agent):
-    def __init__(self, model, action_space:np.ndarray, gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1):
+    def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1):
         super().__init__(action_space)
-
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
         self.learning_rate = 1e-3

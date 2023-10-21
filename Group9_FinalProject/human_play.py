@@ -22,11 +22,11 @@ def main():
     playing = True
     game_won = False
 
-    # game loop
-    while playing: 
-
+    # game loop     
+    while playing:    
+           
         ### handle game events
-        for event in pygame.event.get():
+        for event in pygame.event.get():      # pygame.event.get()
             # quit if the window is closed
             if event.type == pygame.QUIT:
                 playing = False
