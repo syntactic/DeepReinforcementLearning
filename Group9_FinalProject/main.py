@@ -37,6 +37,15 @@ def init_grid_model(input_size, action_space):
 
         return model
 
+def unroll_grid(state):
+    # TODO fix the reshape once we switch to CNN
+    # this is just a temp placeholder
+    w, h = state.shape
+    s = state.reshape((1, w*h )) + \
+        np.random.rand(1, w*h)/10.0 
+    s = torch.from_numpy(s).float() 
+    return s
+
 def main():
     NUM_GAMES = 1000
     MAX_MOVES_PER_GAME = 100
@@ -53,7 +62,8 @@ def main():
         agent = Agent(action_space=game.action_space)
     elif AGENT_TYPE == DQN_AGENT:
         model = init_grid_model(game.num_states, game.action_space)
-        agent = DQNAgent(model=model, action_space=game.action_space)
+        agent = DQNAgent(model=model, action_space=game.action_space, training=True)
+        agent.format_state = unroll_grid
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
         agent = HumanAgent("test", game.action_space)
@@ -65,7 +75,7 @@ def main():
     orchestrator.play()
 
     # save the trajectories of play from the games
-    orchestrator.save_trajectories()
+    orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_GAMES}.pkl")
 
     agent.print_results()
 

@@ -25,7 +25,6 @@ class GridWorld:
         self.height = height
         self.random_start = random_start
         self.random_board = random_board
-        self.time_start = int(time.time()) # used for random seed setting
         self.seed = seed
         self.win_state = Position(width-1, height-1)
         self.player_pos = self.new_player_pos()
@@ -39,7 +38,7 @@ class GridWorld:
     def new_player_pos(self, static=Position(1,0)):
         if self.random_start:
             while True:
-                np.random.seed(int((time.time() - self.time_start)))
+                np.random.seed()
                 x = np.random.choice(self.width, 1)
                 y = np.random.choice(self.height, 1)
                 if x != self.win_state.x or y != self.win_state.y:

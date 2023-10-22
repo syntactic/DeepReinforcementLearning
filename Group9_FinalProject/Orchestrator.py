@@ -38,6 +38,8 @@ class Orchestrator:
             self.window = GameWindow()
     
     def play(self):
+
+        timestep = 0
         for g in range(self.num_games):
             print('Playing game', g, '... ', end='')
 
@@ -46,12 +48,8 @@ class Orchestrator:
             self.agent.reset() 
             self.trajectories.append([])
 
-            # get initial state and whether game is over
-            init_state = self.game.get_state()
+            # get initial playing boolean 
             playing = not self.game.check_game_over()
-
-            # set state as init_state
-            state = init_state
 
             if self.visualize:
                 exit_games = self.visualize_game()
@@ -60,6 +58,9 @@ class Orchestrator:
 
             # play until the game is over
             while(playing):
+
+                # set state
+                state = self.game.get_state()
 
                 # get action from agent based on state
                 action = self.agent.get_action(state)
@@ -73,6 +74,11 @@ class Orchestrator:
                 # inform the agent of the result
                 self.agent.inform_result(next_state, reward, game_over)
 
+                # train if we can train
+                if self.agent.training:
+                    if timestep % self.agent.training_freq == 0:
+                        self.agent.train()
+
                 # check whether the game should end
                 playing = not game_over
 
@@ -83,10 +89,11 @@ class Orchestrator:
 
                 if self.visualize:
                     # draw game stuff
-                    # get an image of the current state of the grid (and upsample 50x to fill game space)
                     exit_games = self.visualize_game()
                     if exit_games:
                         return None
+
+                timestep += 1
 
     def visualize_game(self):
         # get an image of the current state of the grid (and upsample 50x to fill game space)

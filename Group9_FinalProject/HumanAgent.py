@@ -5,7 +5,7 @@ import pygame
 
 class HumanAgent(Agent):
     def __init__(self, name:str, action_space:np.ndarray):
-        super().__init__(action_space)
+        super().__init__(action_space, name)
     
     def get_action(self, state):
         # waiting for a response

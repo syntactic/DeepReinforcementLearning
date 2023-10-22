@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 import random
 import torch
-from utils import Buffer
 from Agent import Agent
+from utils import Buffer
 
 class DQNAgent(Agent):
-    def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1):
+    def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=10, batch_size=4):
         super().__init__(action_space)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
@@ -18,17 +18,12 @@ class DQNAgent(Agent):
         self.epsilon_floor = epsilon_floor
         self.loss_bucket = [] # temporarily holds losses for averaging
         self.losses = [] # holds average loss for each game trained on
+        self.training = training
+        self.training_freq = training_freq
         self.buffer = Buffer()
+        self.batch_size = batch_size
 
         #print(self.model)
-    
-    def format_state(self, state):
-        # TODO fix the reshape once we switch to CNN
-        # this is just a temp placeholder
-        s = state.reshape((1, 100)) + \
-            np.random.rand(1, 100)/10.0 
-        s = torch.from_numpy(s).float() 
-        return s
     
     def get_action(self, state):
 
@@ -56,14 +51,13 @@ class DQNAgent(Agent):
     
     def inform_result(self, next_state, reward, game_over):
 
-        self.next_state = self.format_state(next_state)
-        self.reward = reward
-        self.game_over = game_over
+        super().inform_result(next_state, reward, game_over)
 
         # TODO collect information in a buffer to allow for the possibility of 
         # training after x number of steps instead of after every step
         # TODO think about parameters to control whether the agent is training or testing, etc
-        self.train()
+        if self.training:
+            self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
 
     def train(self):
         # TODO test if it is more efficient to save qval_tensor instead of running the model again
