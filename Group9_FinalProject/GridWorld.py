@@ -39,8 +39,8 @@ class GridWorld:
         if self.random_start:
             while True:
                 np.random.seed()
-                x = np.random.choice(self.width, 1)
-                y = np.random.choice(self.height, 1)
+                x = np.random.choice(self.width, 1)[0]
+                y = np.random.choice(self.height, 1)[0]
                 if x != self.win_state.x or y != self.win_state.y:
                     return Position(x,y)
         else:
@@ -100,8 +100,8 @@ class GridWorld:
         np.random.seed(self.seed)
         walls_placed = 0
         while walls_placed < self.num_walls:
-            x=np.random.choice(grid.shape[0], 1)
-            y=np.random.choice(grid.shape[1], 1)
+            x=np.random.choice(grid.shape[0], 1)[0]
+            y=np.random.choice(grid.shape[1], 1)[0]
 
             if(grid[y,x] == FLOOR and not check_win_blocked(grid, x, y)):
                 grid[y,x] = WALL

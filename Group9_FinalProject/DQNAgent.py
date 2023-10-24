@@ -6,7 +6,7 @@ from Agent import Agent
 from utils import Buffer
 
 class DQNAgent(Agent):
-    def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=10, batch_size=4):
+    def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
         super().__init__(action_space)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
@@ -48,9 +48,8 @@ class DQNAgent(Agent):
         # store the action (assuming it is taken)
         self.action = action
         return action
-    
-    def inform_result(self, next_state, reward, game_over):
 
+    def inform_result(self, next_state, reward, game_over):
         super().inform_result(next_state, reward, game_over)
 
         # TODO collect information in a buffer to allow for the possibility of 
@@ -58,10 +57,38 @@ class DQNAgent(Agent):
         # TODO think about parameters to control whether the agent is training or testing, etc
         if self.training:
             self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
+        # epsilon decay
+        if self.epsilon > 0.1:
+            self.epsilon = self.epsilon * self.epsilon_decay
+        else:
+            self.epsilon = self.epsilon_floor
 
     def train(self):
+        if self.buffer.size() >= self.batch_size:
+            state, next_state, action, reward, done = self.buffer.get_samples(self.batch_size)
+            current_Q = self.model(state)
+            #print(f"current_Q shape: {current_Q.shape}, current_Q: {current_Q}")
+            with torch.no_grad():
+                new_Q = self.model(next_state)
+            max_Q = torch.max(new_Q, 2).values
+            #print(f"max_Q shape: {max_Q.shape}, max_Q: {max_Q}")
+            Y = reward + (self.gamma * max_Q)
+            done_indices = done == True
+            Y[done_indices] = reward[done_indices]
+            Y = Y.squeeze()
+            #print(f"Current_Q shape: {current_Q.shape}, action shape: {action.shape}")
+            #print(f"Action: {action}")
+            input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
+            #print(f"input_batch: {input_batch}, Y: {Y}")
+            loss = self.loss_fn(input_batch, Y)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
+
+            # track loss from training
+            self.loss_bucket.append(loss.item())
         # TODO test if it is more efficient to save qval_tensor instead of running the model again
-        qval_tensor = self.model(self.state)
+        """qval_tensor = self.model(self.state)
         
         with torch.no_grad():
             newQ = self.model(self.next_state)
@@ -75,23 +102,8 @@ class DQNAgent(Agent):
         
         output = torch.Tensor([Y]).detach()[0]
         input = qval_tensor.squeeze()[self.action]
+        #print(f"input: {input}, output: {output}")"""
 
-        loss = self.loss_fn(input, output)
-        self.optimizer.zero_grad()
-        loss.backward()
-        self.optimizer.step()
-
-        # track loss from training
-        self.loss_bucket.append(loss.item())
-
-        if self.game_over:
-            self.losses.append(np.mean(self.loss_bucket))
-
-            # epsilon decay
-            if self.epsilon > 0.1:
-                self.epsilon = self.epsilon * self.epsilon_decay
-            else:
-                self.epsilon = self.epsilon_floor
             
     def reset(self):
         self.state = float("nan")

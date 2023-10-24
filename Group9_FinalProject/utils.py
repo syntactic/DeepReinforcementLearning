@@ -1,5 +1,5 @@
 import numpy as np
-import random, os, pickle
+import random, os, pickle, torch
 from collections import deque
 
 class Buffer():
@@ -11,7 +11,38 @@ class Buffer():
 
     # (s, a, r, s', d)
     def add(self, timestep_data) -> None:
+        #print(f"timestep_data: {timestep_data}")
         self.data.append(timestep_data)
+
+    def size(self):
+        return len(self.data)
+
+    def sample(self, batch_size: int):
+        if batch_size > len(self.data):
+            batch_size = len(self.data)
+        indexes = np.random.choice(np.arange(len(self.data)), size=batch_size, replace=False)
+        return [self.data[i] for i in indexes]
+
+    def get_samples(self, batch_size, device='cpu'):
+        batch = self.sample(batch_size)
+
+        batch_state, batch_action, batch_reward, batch_next_state, batch_done = zip(
+            *batch)
+
+        batch_state = np.array(batch_state)
+        batch_next_state = np.array(batch_next_state)
+        batch_action = np.array(batch_action)
+
+        batch_state = torch.as_tensor(batch_state, dtype=torch.float, device=device)
+        batch_next_state = torch.as_tensor(batch_next_state, dtype=torch.float, device=device)
+        batch_action = torch.as_tensor(batch_action, dtype=torch.int64, device=device)
+        if batch_action.ndim == 1:
+            batch_action = batch_action.unsqueeze(1)
+        batch_reward = torch.as_tensor(batch_reward, dtype=torch.float, device=device).unsqueeze(1)
+        #print(batch_done)
+        batch_done = torch.as_tensor(batch_done, dtype=torch.float, device=device).unsqueeze(1)
+
+        return batch_state, batch_next_state, batch_action, batch_reward, batch_done
 
     def load_trajectories(self, filepath: str,
                           num_trajectories: int = 10,

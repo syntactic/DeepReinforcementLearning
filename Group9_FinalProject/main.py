@@ -51,7 +51,7 @@ def main():
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
-    WALLS = STATIC_WALLS
+    WALLS = RANDOM_WALLS
 
     # create the game object
     game = GridWorld(10, 10, random_board=WALLS, random_start=PLAYER_START, max_moves_per_game=MAX_MOVES_PER_GAME)

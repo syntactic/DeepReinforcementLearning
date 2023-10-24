@@ -69,7 +69,7 @@ class Orchestrator:
                 next_state, reward, game_over = self.game.step(action)
 
                 # add data to trajectories
-                self.trajectories[-1].append((state, action, reward, next_state, game_over))
+                self.trajectories[-1].append((np.copy(state), action, reward, np.copy(next_state), game_over))
 
                 # inform the agent of the result
                 self.agent.inform_result(next_state, reward, game_over)
