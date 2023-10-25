@@ -7,6 +7,7 @@ from Agent import Agent
 from DQNAgent import DQNAgent
 from HumanAgent import HumanAgent
 from Orchestrator import Orchestrator
+from utils import *
 
 import torch
 
@@ -51,7 +52,7 @@ def main():
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
-    WALLS = RANDOM_WALLS
+    WALLS = STATIC_WALLS
 
     # create the game object
     game = GridWorld(10, 10, random_board=WALLS, random_start=PLAYER_START, max_moves_per_game=MAX_MOVES_PER_GAME)
@@ -61,7 +62,8 @@ def main():
     if AGENT_TYPE == RANDOM_AGENT:
         agent = Agent(action_space=game.action_space)
     elif AGENT_TYPE == DQN_AGENT:
-        model = init_grid_model(game.num_states, game.action_space)
+        model = Model(init_grid_model(game.num_states, game.action_space))
+        model.print()
         agent = DQNAgent(model=model, action_space=game.action_space, training=True)
         agent.format_state = unroll_grid
     elif AGENT_TYPE == HUMAN_AGENT:
@@ -77,7 +79,7 @@ def main():
     # save the trajectories of play from the games
     orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_GAMES}.pkl")
 
-    agent.print_results()
+    model.plot_losses(save=True)
 
 
 if __name__ == "__main__":

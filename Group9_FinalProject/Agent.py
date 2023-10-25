@@ -31,14 +31,6 @@ class Agent:
         resets the Agent's internal parameters to reflect the beginning of 
         a new game. Note, this does NOT reset any learning from the previous
         game, if applicable.
-    
-    print_results():
-        plots current results of the agent (depends on agent what type of results)
-
-    save_results():
-        This saves the data relevant to the agent. For ex,
-        for a human agent, it saves the trajectories of the games, while for a 
-        DQN agent, it will save the trained model
     """
     def __init__(self, action_space:np.ndarray, name:str="rand"):
         self.name = name
@@ -72,8 +64,10 @@ class Agent:
         self.reward = float("nan")
         self.game_over = float("nan")
     
+    '''
     def print_results(self):
         pass
     def save_results(self):
         """ saves the trajectory of the agent """
         pass
+    '''

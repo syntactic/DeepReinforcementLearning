@@ -1,6 +1,7 @@
 import numpy as np
 import random, os, pickle, torch
 from collections import deque
+import matplotlib.pyplot as plt
 
 class Buffer():
     # heavily inspired by https://github.com/Div99/IQ-Learn/iq_learn/dataset/*
@@ -63,6 +64,42 @@ class Buffer():
                     trajs["next_states"][i], trajs["dones"][i]))
         else:
             raise ValueError(f"{filepath} is not a valid path")
+
+class Model():
+    def __init__(self, model, name="model"):
+        self.model = model
+        self.name = name
+        self.loss_bucket = []
+        self.losses = []
+    
+    def get_q(self, state):
+        return self.model(state)
+    
+    def parameters(self):
+        return self.model.parameters()
+    
+    def append_to_loss_bucket(self, loss_item):
+        self.loss_bucket.append(loss_item)
+    
+    def collect_game_losses(self):
+        self.losses.append(np.mean(self.loss_bucket))
+        self.loss_bucket = []
+
+    def plot_losses(self, path = "", save=False):
+        # set up the figure and axes
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
+
+        ax.plot(range(len(self.losses)), self.losses)
+        ax.set_xlabel('games')
+        ax.set_ylabel('loss')
+        
+        if save:
+            plt.tight_layout()
+            fig.savefig(path + self.name + '.svg', format='svg', dpi=1200, bbox_inches='tight')
+        plt.show()
+    
+    def print(self):
+        print(self.model)
 
 class Position:
     def __init__(self, x, y):
