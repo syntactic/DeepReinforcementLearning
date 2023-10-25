@@ -98,6 +98,13 @@ class Model():
             fig.savefig(path + self.name + '.svg', format='svg', dpi=1200, bbox_inches='tight')
         plt.show()
     
+    def save(self, path=""):
+        torch.save(self.model.state_dict(), path+self.name+'.pt')
+    
+    def load(self, path):
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
+
     def print(self):
         print(self.model)
 
