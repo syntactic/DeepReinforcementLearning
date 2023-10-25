@@ -20,7 +20,7 @@ LEFT = 3
 
 class GridWorld:
 
-    def __init__(self, width=10, height=10, random_board=False, random_start=False, seed=0, max_moves_per_game=100):
+    def __init__(self, width=10, height=10, random_board=False, random_start=False, seed=0, num_walls=5, max_moves_per_game=100):
         self.width = width
         self.height = height
         self.random_start = random_start
@@ -28,7 +28,7 @@ class GridWorld:
         self.seed = seed
         self.win_state = Position(width-1, height-1)
         self.player_pos = self.new_player_pos()
-        self.num_walls = 5
+        self.num_walls = num_walls
         self.state = self.generate_grid()
         self.action_space = np.array([UP, RIGHT, DOWN, LEFT])
         self.num_states = self.width * self.height
