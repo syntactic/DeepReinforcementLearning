@@ -63,11 +63,4 @@ class Agent:
         self.next_state = float("nan")
         self.reward = float("nan")
         self.game_over = float("nan")
-    
-    '''
-    def print_results(self):
-        pass
-    def save_results(self):
-        """ saves the trajectory of the agent """
-        pass
-    '''
+

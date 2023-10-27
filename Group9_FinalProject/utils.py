@@ -24,15 +24,40 @@ class Buffer():
         indexes = np.random.choice(np.arange(len(self.data)), size=batch_size, replace=False)
         return [self.data[i] for i in indexes]
 
-    def get_samples(self, batch_size, device='cpu'):
+    def get_samples(self, batch_size, format_state, device='cpu'):
         batch = self.sample(batch_size)
 
+        # game play -> [tensors]
+        # 
         batch_state, batch_action, batch_reward, batch_next_state, batch_done = zip(
             *batch)
 
+        assert len(batch_state) > 0
+        assert type(batch_state[0])
+        # need to correct this in load_trajectories (?) -> it should match the online samples format
+        # for loaded trajectories -> (batch size, 
+        # for online samples -> (batch size, 1, 100)
+     
         batch_state = np.array(batch_state)
         batch_next_state = np.array(batch_next_state)
         batch_action = np.array(batch_action)
+
+        print(f"before b {batch_state[0].shape}")
+        for i,s in enumerate(batch_state):
+            s = format_state(s)
+            #batch_state[i] = format_state(s)
+        print(f"after b {batch_state[0].shape}")
+
+        print(f"before n_b {batch_next_state[0].shape}")
+        for s in batch_next_state:
+            s = format_state(s)
+        print(f"after n_b {batch_next_state[0].shape}")
+
+        for i in range(len(batch_state)):
+            for j in range(len(batch_state[0])):
+                print(i, j, len(batch_state[i][j]))
+
+        print('---------------')
 
         batch_state = torch.as_tensor(batch_state, dtype=torch.float, device=device)
         batch_next_state = torch.as_tensor(batch_next_state, dtype=torch.float, device=device)
@@ -58,10 +83,14 @@ class Buffer():
             perm = np.arange(len(trajs["states"]))
             perm = rng.permutation(perm)
 
-            idx = perm[:num_trajectories]
+            # idx refers to each trajectory
+            idx = perm[:num_trajectories] 
+
+            # for each trajectory
             for i in idx:
-                self.add((trajs["states"][i], trajs["actions"][i], trajs["rewards"][i],
-                    trajs["next_states"][i], trajs["dones"][i]))
+                for j in range(len(trajs["states"][i])):
+                    self.add((trajs["states"][i][j], trajs["actions"][i][j], trajs["rewards"][i][j],
+                        trajs["next_states"][i][j], trajs["dones"][i][j]))
         else:
             raise ValueError(f"{filepath} is not a valid path")
 
@@ -72,7 +101,7 @@ class Model():
         self.loss_bucket = []
         self.losses = []
     
-    def get_q(self, state):
+    def get_Q(self, state):
         return self.model(state)
     
     def parameters(self):
@@ -131,3 +160,48 @@ def read_file(path: str, file_handle):
     else:
         raise NotImplementedError
     return data
+
+def get_max_Q(q, alpha=0.001):
+    return alpha * torch.logsumexp(q/alpha, dim=1, keepdim=True)
+
+# loss(input, output) -> iq_loss(current_V, y)
+def iq_loss(current_Q, current_V, y): # args, etc
+    """ heavily inspired by https://github.com/Div99/IQ-Learn/blob/main/iq_learn/iq.py """
+
+    # Notes: (our explanation of what iq loss is doing)
+    # the loss takes in 2 points -> 
+    #       'reward' (calculated as current Q - expected value of next state)
+    #       'value_loss' (calculated as current V - expected value of next state)
+    # loss tries to minimize the difference between reward and value_loss
+
+    #  calculate 1st term for IQ loss
+    #  -E_(ρ_expert)[Q(s, a) - γV(s')]
+    #y = (1 - done) * gamma * next_V    curr_Qs = [0.1, 0.1, 0.3, (0.2)], next_Qs = [0.2, 0.1, 0.05, 0.03]
+    reward = (current_Q - y) # [is_expert]  ## ( 0.2 - 0.99*0.5) -> NEG
+
+    # phi_grad is the divergence term
+    phi_grad = 1
+    loss = -(phi_grad * reward).mean() # then, loss is POS
+
+    # sample using only expert states (works offline)
+    value_loss = (current_V - y).mean() # (0.3 - 0.99 * 0.2) -> POS > reward
+    loss += value_loss # (more POS) (further from 0) :()
+
+    return loss
+
+def get_concat_samples(policy_batch, expert_batch):
+    """ borrowed from https://github.com/Div99/IQ-Learn/blob/main/iq_learn/utils/utils.py """
+    online_batch_state, online_batch_next_state, online_batch_action, online_batch_reward, online_batch_done = policy_batch
+
+    expert_batch_state, expert_batch_next_state, expert_batch_action, expert_batch_reward, expert_batch_done = expert_batch
+
+    batch_state = torch.cat([online_batch_state, expert_batch_state], dim=0)
+    batch_next_state = torch.cat(
+        [online_batch_next_state, expert_batch_next_state], dim=0)
+    batch_action = torch.cat([online_batch_action, expert_batch_action], dim=0)
+    batch_reward = torch.cat([online_batch_reward, expert_batch_reward], dim=0)
+    batch_done = torch.cat([online_batch_done, expert_batch_done], dim=0)
+    is_expert = torch.cat([torch.zeros_like(online_batch_reward, dtype=torch.bool),
+                           torch.ones_like(expert_batch_reward, dtype=torch.bool)], dim=0)
+
+    return batch_state, batch_next_state, batch_action, batch_reward, batch_done, is_expert

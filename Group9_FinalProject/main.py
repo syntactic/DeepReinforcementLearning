@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from DQN import DQN
 from GridWorld import GridWorld
 from Agent import Agent
 from DQNAgent import DQNAgent
+from IQLearnAgent import IQLearnAgent
 from HumanAgent import HumanAgent
 from Orchestrator import Orchestrator
 from utils import *
@@ -14,6 +14,7 @@ import torch
 RANDOM_AGENT = 0
 DQN_AGENT = 1
 HUMAN_AGENT = 2
+IQ_LEARN_AGENT = 3
 
 STATIC_START = 0
 RANDOM_START = 1
@@ -41,16 +42,19 @@ def init_grid_model(input_size, action_space):
 def unroll_grid(state):
     # TODO fix the reshape once we switch to CNN
     # this is just a temp placeholder
+    if torch.is_tensor(state):
+        state = state.numpy()
     w, h = state.shape
-    s = state.reshape((1, w*h )) + \
-        np.random.rand(1, w*h)/10.0 
+    
+    s = state.reshape((1, w*h )) #+ \
+        #np.random.rand(1, w*h)/10.0 
     s = torch.from_numpy(s).float() 
     return s
 
 def main():
-    NUM_GAMES = 1000
+    NUM_GAMES = 1
     MAX_MOVES_PER_GAME = 100
-    AGENT_TYPE = DQN_AGENT
+    AGENT_TYPE = IQ_LEARN_AGENT
     PLAYER_START = RANDOM_START
     WALLS = STATIC_WALLS
 
@@ -61,14 +65,27 @@ def main():
     visualize_game = False
     if AGENT_TYPE == RANDOM_AGENT:
         agent = Agent(action_space=game.action_space)
+
     elif AGENT_TYPE == DQN_AGENT:
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.print()
         agent = DQNAgent(model=model, action_space=game.action_space, training=True)
         agent.format_state = unroll_grid
+
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
         agent = HumanAgent("test", game.action_space)
+
+    elif AGENT_TYPE == IQ_LEARN_AGENT:
+        model = Model(init_grid_model(game.num_states, game.action_space))
+        model.format_state = unroll_grid
+        model.print()
+        expert_buffer = Buffer()
+        expert_buffer.load_trajectories("trained_dqn_100.pkl", num_trajectories=50)
+        agent = IQLearnAgent(model=model, action_space=game.action_space, training=True)
+        agent.format_state = unroll_grid
+        agent.set_expert_buffer(expert_buffer)
+         
 
     # create the orchestrator, which controls the game, with the game and agent objects
     orchestrator = Orchestrator(game=game, agent=agent, num_games=NUM_GAMES, visualize=visualize_game)
@@ -79,7 +96,10 @@ def main():
     # save the trajectories of play from the games
     orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_GAMES}.pkl")
 
+    # plot the model's losses
     model.plot_losses(save=True)
+
+
 
 
 if __name__ == "__main__":

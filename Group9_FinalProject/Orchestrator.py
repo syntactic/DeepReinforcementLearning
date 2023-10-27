@@ -7,7 +7,6 @@ from GameWindow import GameWindow
 from utils import *
 import pickle
 
-
 """
 Basic idea: feed it an agent, a game, and a number of games to play
 
@@ -83,7 +82,6 @@ class Orchestrator:
                 playing = not game_over
 
                 if not playing:
-                    self.agent.save_results()
                     print("total moves:", self.game.moves_made, " ", end="")
                     print('game over.')
 
@@ -109,6 +107,7 @@ class Orchestrator:
         exit_games = self.window.check_quit()
 
         return exit_games
+    
     def set_game(self, game):
         """ sets the game controlled by the orchestrator """
         self.game = game

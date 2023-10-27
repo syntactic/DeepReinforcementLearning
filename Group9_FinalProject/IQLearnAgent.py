@@ -2,13 +2,13 @@ import numpy as np
 import random
 import torch
 from Agent import Agent
-from utils import Buffer
+from utils import Buffer, iq_loss, get_max_Q
 
-class DQNAgent(Agent):
+class IQLearnAgent(Agent):
     def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
         super().__init__(action_space)
         self.model = model
-        self.loss_fn = torch.nn.MSELoss()
+        self.loss_fn = iq_loss
         self.learning_rate = 1e-3
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.learning_rate)
         self.gamma = gamma
@@ -17,8 +17,12 @@ class DQNAgent(Agent):
         self.epsilon_floor = epsilon_floor
         self.training = training
         self.training_freq = training_freq
-        self.buffer = Buffer()
+        self.buffer = Buffer() # policy buffer
+        self.expert_buffer = Buffer()
         self.batch_size = batch_size
+
+    def set_expert_buffer(self, expert_buffer):
+        self.expert_buffer = expert_buffer
 
     def get_action(self, state):
 
@@ -65,21 +69,21 @@ class DQNAgent(Agent):
 
     def train(self):
         if self.buffer.size() >= self.batch_size:
-            state, next_state, action, reward, done = self.buffer.get_samples(self.batch_size, self.format_state)
-            current_Q = self.model.get_Q(state)
+            state, next_state, action, _, done = self.expert_buffer.get_samples(self.batch_size, self.format_state)
+            Q_vals = self.model.get_Q(state)
+            current_Q = Q_vals[action]
+            current_V = get_max_Q(Q_vals)
+            next_V = get_max_Q(self.model_get_q(next_state))
 
-            with torch.no_grad():
-                new_Q = self.model.get_Q(next_state)
-            max_Q = torch.max(new_Q, 2).values
-
-            Y = reward + (self.gamma * max_Q)
-            done_indices = done == True
-            Y[done_indices] = reward[done_indices]
-            Y = Y.squeeze()
+            #  calculate 1st term for IQ loss
+            #  -E_(ρ_expert)[Q(s, a) - γV(s')]
+            y = (1 - done) * self.gamma * next_V
+            reward = (current_Q - y)#[is_expert]
 
             input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
 
-            loss = self.loss_fn(input_batch, Y)
+            #
+            loss = iq_loss(current_Q, current_V, y)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
@@ -87,7 +91,6 @@ class DQNAgent(Agent):
             # track loss from training
             self.model.append_to_loss_bucket(loss.item())
 
-            
     def reset(self):
         self.state = float("nan")
         self.next_state = float("nan")
