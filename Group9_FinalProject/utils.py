@@ -116,17 +116,13 @@ class Model():
     
     def append_to_loss_bucket(self, loss_item):
         self.loss_bucket.append(loss_item)
-    
-    def collect_game_losses(self):
-        self.losses.append(np.mean(self.loss_bucket))
-        self.loss_bucket = []
 
     def plot_losses(self, path = "", save=False):
         # set up the figure and axes
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
 
-        ax.plot(range(len(self.losses)), self.losses)
-        ax.set_xlabel('games')
+        ax.plot(range(len(self.loss_bucket)), self.loss_bucket)
+        ax.set_xlabel('training steps')
         ax.set_ylabel('loss')
         
         if save:

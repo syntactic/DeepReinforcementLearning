@@ -54,9 +54,6 @@ class IQLearnAgent(Agent):
 
         if self.training:
             self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
-
-        if game_over:
-            self.model.collect_game_losses()
             
         # epsilon decay
         if self.epsilon > 0.1:

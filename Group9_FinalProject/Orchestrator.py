@@ -27,10 +27,10 @@ Basic idea: feed it an agent, a game, and a number of games to play
 # TODO , get rid of agent.save_results etc and the methods within Agent
 class Orchestrator:
 
-    def __init__(self, game:GridWorld, agent:Agent, num_games:int, visualize:bool=False):
+    def __init__(self, game:GridWorld, agent:Agent, num_timesteps:int, visualize:bool=False):
         self.game = game
         self.agent = agent
-        self.num_games = num_games
+        self.num_timesteps = num_timesteps
         self.trajectories = [] # should trajectories belong to agents?
         self.distance_ratios = []
         self.visualize = visualize
@@ -40,8 +40,9 @@ class Orchestrator:
     def play(self):
 
         timestep = 0
-        for g in range(self.num_games):
-            print('Playing game', g, '... ', end='')
+        game_index = 0
+        while timestep < self.num_timesteps:
+            print('Playing game', game_index, '... ', end='')
 
             # intialize the game
             self.game.reset()
@@ -84,6 +85,7 @@ class Orchestrator:
                 playing = not game_over
 
                 if not playing:
+                    game_index += 1
                     ratio = self.game.moves_made / shortest_distance
                     self.distance_ratios.append(ratio)
                     print("total moves:", self.game.moves_made, " (" + str(round(ratio, 4)) + ") ", end="")

@@ -52,7 +52,7 @@ def unroll_grid(state):
     return s
 
 def main():
-    NUM_GAMES = 1000
+    NUM_TIMESTEPS = 800000
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
@@ -70,7 +70,7 @@ def main():
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.format_state = unroll_grid
         model.print()
-        agent = DQNAgent(model=model, action_space=game.action_space, training=True)
+        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=1)
 
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
@@ -88,13 +88,13 @@ def main():
          
 
     # create the orchestrator, which controls the game, with the game and agent objects
-    orchestrator = Orchestrator(game=game, agent=agent, num_games=NUM_GAMES, visualize=visualize_game)
+    orchestrator = Orchestrator(game=game, agent=agent, num_timesteps=NUM_TIMESTEPS, visualize=visualize_game)
     
     # play num_games games with the game and agent objects
     orchestrator.play()
 
     # save the trajectories of play from the games
-    orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_GAMES}.pkl")
+    orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_TIMESTEPS}.pkl")
 
     # plot distance ratios
     orchestrator.plot_distance_ratios(save=True)
