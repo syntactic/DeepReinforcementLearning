@@ -139,6 +139,57 @@ class Model():
 
     def print(self):
         print(self.model)
+    
+    def estimate_value_map(self, grid, save=False, path=""):
+        """ estimates a value map by steping through every available tile in the 
+            grid and passing it through the model to get Q values. The value map
+            is the max q value for each state """
+        
+        # set up an empty value map
+        V_map = np.empty((grid.width, grid.height))
+
+        # this will update itself as the game progresses
+        state = grid.state 
+
+        up_move = True
+        down_move = False
+
+        win = False
+
+        while not win:
+            #grid.visualize_grid()
+            # get current Q val
+            with torch.no_grad():
+                Q_vals = self.model(self.format_state(state))
+
+            # get max
+            V = torch.max(Q_vals, 1).values
+            # set value in valuse map
+            V_map[grid.player_pos.y, grid.player_pos.x] = V
+
+            # determine if the player needs to turn
+            if (up_move and grid.player_pos.y == 0) or (down_move and grid.player_pos.y == grid.height-1):
+                grid.step(1)
+                up_move = not up_move
+                down_move = not down_move
+            else:
+                if up_move:
+                    grid.step(0)
+                elif down_move:
+                    grid.step(2)
+            
+            win = grid.check_game_over()
+        
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(4, 4))
+        ax.imshow(V_map)
+        if save:
+            plt.tight_layout()
+            fig.savefig(path+self.name + "VMap" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
+        plt.show()
+
+            
+            
+
 
 class Position:
     def __init__(self, x, y):

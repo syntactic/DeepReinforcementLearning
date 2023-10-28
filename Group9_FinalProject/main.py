@@ -52,7 +52,7 @@ def unroll_grid(state):
     return s
 
 def main():
-    NUM_TIMESTEPS = 200000
+    NUM_TIMESTEPS = 20000
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
@@ -70,7 +70,18 @@ def main():
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.format_state = unroll_grid
         model.print()
-        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=1)
+
+        ### used to estimate the V map 
+        # The vmap_estimation function expects a 10x10 grid without walls, where the player starts in the bottom 
+        # left corner. This is because the function explictly steps through the gridworld with actions that traverse
+        # every state (basically snaking up and down columns until it reaches the win). However, without a specific
+        # obstacle free arrangement at the beginning of play, the game will end without hittign every state
+
+        #model.load('bad_dqn_20000stepsmodel.pt')
+        #grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
+        #model.estimate_value_map(grid_vmap_estimation)
+
+        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8)
 
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
@@ -86,7 +97,6 @@ def main():
         agent.format_state = unroll_grid
         agent.set_expert_buffer(expert_buffer)
          
-
     # create the orchestrator, which controls the game, with the game and agent objects
     orchestrator = Orchestrator(game=game, agent=agent, num_timesteps=NUM_TIMESTEPS, visualize=visualize_game)
     
@@ -101,9 +111,6 @@ def main():
 
     # plot the model's losses
     model.plot_losses(save=True)
-
-
-
 
 if __name__ == "__main__":
     main()
