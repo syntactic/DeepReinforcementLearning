@@ -96,6 +96,9 @@ def main():
     # save the trajectories of play from the games
     orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_GAMES}.pkl")
 
+    # plot distance ratios
+    orchestrator.plot_distance_ratios(save=True)
+
     # plot the model's losses
     model.plot_losses(save=True)
 

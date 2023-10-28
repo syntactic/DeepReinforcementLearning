@@ -199,5 +199,6 @@ class GridWorld:
 
         return grid_image
         
-
-         
+    def distance_from_agent_to_win_state(self):
+        p = self.win_state - self.player_pos
+        return p.x + p.y

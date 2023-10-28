@@ -32,6 +32,7 @@ class Orchestrator:
         self.agent = agent
         self.num_games = num_games
         self.trajectories = [] # should trajectories belong to agents?
+        self.distance_ratios = []
         self.visualize = visualize
         if self.visualize:
             self.window = GameWindow()
@@ -44,6 +45,7 @@ class Orchestrator:
 
             # intialize the game
             self.game.reset()
+            shortest_distance = self.game.distance_from_agent_to_win_state()
             self.agent.reset() 
             self.trajectories.append([])
 
@@ -82,7 +84,9 @@ class Orchestrator:
                 playing = not game_over
 
                 if not playing:
-                    print("total moves:", self.game.moves_made, " ", end="")
+                    ratio = self.game.moves_made / shortest_distance
+                    self.distance_ratios.append(ratio)
+                    print("total moves:", self.game.moves_made, " (" + str(round(ratio, 4)) + ") ", end="")
                     print('game over.')
 
                 if self.visualize:
@@ -124,3 +128,16 @@ class Orchestrator:
                          'rewards':rewards,
                          'next_states':next_states,
                          'dones':dones}, file)
+
+    def plot_distance_ratios(self, path = "", save=False):
+        # set up the figure and axes
+        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
+
+        ax.plot(range(len(self.distance_ratios)), self.distance_ratios)
+        ax.set_xlabel('games')
+        ax.set_ylabel('ratio of steps to shortest distance')
+        
+        if save:
+            plt.tight_layout()
+            fig.savefig(path + self.agent.name + "_distance_ratios" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
+        plt.show()

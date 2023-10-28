@@ -6,7 +6,7 @@ from utils import Buffer
 
 class DQNAgent(Agent):
     def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
-        super().__init__(action_space)
+        super().__init__(action_space, name)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
         self.learning_rate = 1e-3
@@ -90,7 +90,6 @@ class DQNAgent(Agent):
 
             # track loss from training
             self.model.append_to_loss_bucket(loss.item())
-            print(loss.item())
 
             
     def reset(self):

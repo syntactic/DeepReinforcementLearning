@@ -149,6 +149,13 @@ class Position:
         self.x=x
         self.y=y
 
+    def __sub__(self, other_position):
+        return Position(self.x - other_position.x, self.y - other_position.y)
+
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
+        
+
 # traj = [[s, a, r, s'], [s, a, r, s'], ...]
 # trajectories = [[[s, a, r, s'], [s, a, r, s'], ...], [...], [...], ...]
 def split_trajectories(trajectories):
