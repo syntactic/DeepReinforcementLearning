@@ -52,7 +52,7 @@ def unroll_grid(state):
     return s
 
 def main():
-    NUM_TIMESTEPS = 800000
+    NUM_TIMESTEPS = 200000
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
