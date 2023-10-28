@@ -41,7 +41,6 @@ class Agent:
         self.game_over = None
         self.action = None
         self.training = False
-        self.format_state = lambda x : x
     
     def get_action(self, state):
 
@@ -54,7 +53,7 @@ class Agent:
 
     def inform_result(self, next_state, reward, game_over):
 
-        self.next_state = self.format_state(next_state)
+        self.next_state = next_state
         self.reward = reward
         self.game_over = game_over
 
