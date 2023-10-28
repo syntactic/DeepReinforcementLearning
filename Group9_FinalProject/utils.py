@@ -24,7 +24,7 @@ class Buffer():
         indexes = np.random.choice(np.arange(len(self.data)), size=batch_size, replace=False)
         return [self.data[i] for i in indexes]
 
-    def get_samples(self, batch_size, format_state, device='cpu'):
+    def get_samples(self, batch_size, device='cpu'):
         batch = self.sample(batch_size)
 
         # game play -> [tensors]
@@ -38,7 +38,7 @@ class Buffer():
         # for loaded trajectories -> (batch size, 
         # for online samples -> (batch size, 1, 100)
      
-        batch_state = np.array(batch_state)
+        """batch_state = np.array(batch_state)
         batch_next_state = np.array(batch_next_state)
         batch_action = np.array(batch_action)
 
@@ -66,7 +66,7 @@ class Buffer():
             batch_action = batch_action.unsqueeze(1)
         batch_reward = torch.as_tensor(batch_reward, dtype=torch.float, device=device).unsqueeze(1)
         #print(batch_done)
-        batch_done = torch.as_tensor(batch_done, dtype=torch.float, device=device).unsqueeze(1)
+        batch_done = torch.as_tensor(batch_done, dtype=torch.float, device=device).unsqueeze(1)"""
 
         return batch_state, batch_next_state, batch_action, batch_reward, batch_done
 
@@ -100,9 +100,16 @@ class Model():
         self.name = name
         self.loss_bucket = []
         self.losses = []
+        self.format_state = lambda x : x
+        self.device = 'cpu'
     
-    def get_Q(self, state):
-        return self.model(state)
+    def get_Q(self, states):
+
+        states = [self.format_state(state) for state in states]
+        batch_states = np.array(states)
+        batch_states = torch.as_tensor(batch_states, dtype=torch.float, device=self.device)
+
+        return self.model(batch_states)
     
     def parameters(self):
         return self.model.parameters()
@@ -141,6 +148,13 @@ class Position:
     def __init__(self, x, y):
         self.x=x
         self.y=y
+
+    def __sub__(self, other_position):
+        return Position(self.x - other_position.x, self.y - other_position.y)
+
+    def __repr__(self):
+        return f"({self.x}, {self.y})"
+        
 
 # traj = [[s, a, r, s'], [s, a, r, s'], ...]
 # trajectories = [[[s, a, r, s'], [s, a, r, s'], ...], [...], [...], ...]

@@ -26,14 +26,11 @@ class IQLearnAgent(Agent):
 
     def get_action(self, state):
 
-        # get state in the right shape to pass to the model
-        s = self.format_state(state)
-
         # record the current state
-        self.state = s
+        self.state = state
 
         # get qval from the model
-        qval_tensor = self.model.get_Q(self.state)
+        qval_tensor = self.model.get_Q([self.state])
         qval = qval_tensor.data.numpy() 
 
         # choose the next action (random or on policy based on epsilon)
@@ -69,7 +66,7 @@ class IQLearnAgent(Agent):
 
     def train(self):
         if self.buffer.size() >= self.batch_size:
-            state, next_state, action, _, done = self.expert_buffer.get_samples(self.batch_size, self.format_state)
+            state, next_state, action, _, done = self.expert_buffer.get_samples(self.batch_size)
             Q_vals = self.model.get_Q(state)
             current_Q = Q_vals[action]
             current_V = get_max_Q(Q_vals)

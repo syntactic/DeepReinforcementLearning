@@ -6,7 +6,7 @@ from utils import Buffer
 
 class DQNAgent(Agent):
     def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
-        super().__init__(action_space)
+        super().__init__(action_space, name)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
         self.learning_rate = 1e-3
@@ -22,14 +22,11 @@ class DQNAgent(Agent):
 
     def get_action(self, state):
 
-        # get state in the right shape to pass to the model
-        s = self.format_state(state)
-
         # record the current state
-        self.state = s
+        self.state = state
 
         # get qval from the model
-        qval_tensor = self.model.get_Q(self.state)
+        qval_tensor = self.model.get_Q([state])
         qval = qval_tensor.data.numpy() 
 
         # choose the next action (random or on policy based on epsilon)
@@ -65,7 +62,12 @@ class DQNAgent(Agent):
 
     def train(self):
         if self.buffer.size() >= self.batch_size:
-            state, next_state, action, reward, done = self.buffer.get_samples(self.batch_size, self.format_state)
+            state, next_state, action, reward, done = self.buffer.get_samples(self.batch_size)
+            action = torch.as_tensor(action, dtype=torch.int64, device=self.model.device)
+            if action.ndim == 1:
+                action = action.unsqueeze(1)
+            reward = torch.as_tensor(reward, dtype=torch.float, device=self.model.device).unsqueeze(1)
+            done = torch.as_tensor(done, dtype=torch.float, device=self.model.device).unsqueeze(1)
             current_Q = self.model.get_Q(state)
 
             with torch.no_grad():
@@ -77,6 +79,8 @@ class DQNAgent(Agent):
             Y[done_indices] = reward[done_indices]
             Y = Y.squeeze()
 
+            #action = action.unsqueeze(1)
+            #print(f"current_Q: {current_Q.shape}, action: {action.shape}")
             input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
 
             loss = self.loss_fn(input_batch, Y)

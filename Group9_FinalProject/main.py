@@ -46,15 +46,15 @@ def unroll_grid(state):
         state = state.numpy()
     w, h = state.shape
     
-    s = state.reshape((1, w*h )) #+ \
-        #np.random.rand(1, w*h)/10.0 
+    s = state.reshape((1, w*h )) + \
+        np.random.rand(1, w*h)/10.0 
     s = torch.from_numpy(s).float() 
     return s
 
 def main():
-    NUM_GAMES = 1
+    NUM_GAMES = 1000
     MAX_MOVES_PER_GAME = 100
-    AGENT_TYPE = IQ_LEARN_AGENT
+    AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
     WALLS = STATIC_WALLS
 
@@ -68,9 +68,9 @@ def main():
 
     elif AGENT_TYPE == DQN_AGENT:
         model = Model(init_grid_model(game.num_states, game.action_space))
+        model.format_state = unroll_grid
         model.print()
         agent = DQNAgent(model=model, action_space=game.action_space, training=True)
-        agent.format_state = unroll_grid
 
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
@@ -95,6 +95,9 @@ def main():
 
     # save the trajectories of play from the games
     orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_GAMES}.pkl")
+
+    # plot distance ratios
+    orchestrator.plot_distance_ratios(save=True)
 
     # plot the model's losses
     model.plot_losses(save=True)
