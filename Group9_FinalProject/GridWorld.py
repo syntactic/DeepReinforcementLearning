@@ -20,11 +20,12 @@ LEFT = 3
 
 class GridWorld:
 
-    def __init__(self, width=10, height=10, random_board=False, random_start=False, seed=0, num_walls=5, max_moves_per_game=100):
+    def __init__(self, width=10, height=10, random_board=False, random_start=False, seed=0, num_walls=5, max_moves_per_game=100, static_start_pos=Position(0,0)):
         self.width = width
         self.height = height
         self.random_start = random_start
         self.random_board = random_board
+        self.static_start_pos = static_start_pos
         self.seed = seed
         self.win_state = Position(width-1, height-1)
         self.player_pos = self.new_player_pos()
@@ -35,7 +36,7 @@ class GridWorld:
         self.max_moves_per_game = max_moves_per_game
         self.moves_made = 0
     
-    def new_player_pos(self, static=Position(1,0)):
+    def new_player_pos(self):
         if self.random_start:
             while True:
                 np.random.seed()
@@ -44,7 +45,7 @@ class GridWorld:
                 if x != self.win_state.x or y != self.win_state.y:
                     return Position(x,y)
         else:
-            return static
+            return self.static_start_pos
 
 
     def reset(self):
