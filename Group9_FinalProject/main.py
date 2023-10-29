@@ -52,7 +52,7 @@ def unroll_grid(state):
     return s
 
 def main():
-    NUM_TIMESTEPS = 20000
+    NUM_TIMESTEPS = 10000
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = IQ_LEARN_AGENT
     PLAYER_START = RANDOM_START
@@ -68,6 +68,7 @@ def main():
 
     elif AGENT_TYPE == DQN_AGENT:
         model = Model(init_grid_model(game.num_states, game.action_space))
+        model.load('dqn_1000games_model.pt')
         model.format_state = unroll_grid
         model.print()
 
@@ -81,7 +82,7 @@ def main():
         #grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
         #model.estimate_value_map(grid_vmap_estimation, save=True)
 
-        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8)
+        agent = DQNAgent(model=model, action_space=game.action_space, training=False, batch_size=8, name='good_dqn', epsilon=0, epsilon_floor=0)
 
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
@@ -91,12 +92,17 @@ def main():
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.format_state = unroll_grid
         model.print()
+
+        grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
+        model.estimate_value_map(grid_vmap_estimation, save=True, path="bad_iqlearn_")
+
         expert_buffer = Buffer()
-        expert_buffer.load_trajectories("trained_dqn_100.pkl", num_trajectories=50)
-        agent = IQLearnAgent(model=model, action_space=game.action_space, training=True, epsilon=0, epsilon_floor=0)
+        expert_buffer.load_trajectories("good_dqn_2000.pkl", num_trajectories=50)
+        agent = IQLearnAgent(model=model, action_space=game.action_space, training=True, epsilon=1, epsilon_floor=0.1)
         agent.format_state = unroll_grid
         agent.set_expert_buffer(expert_buffer)
-         
+
+
     # create the orchestrator, which controls the game, with the game and agent objects
     orchestrator = Orchestrator(game=game, agent=agent, num_timesteps=NUM_TIMESTEPS, visualize=visualize_game)
     
@@ -111,6 +117,9 @@ def main():
 
     # plot the model's losses
     model.plot_losses(save=True)
+
+    grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
+    model.estimate_value_map(grid_vmap_estimation, save=True, path="bad_iqlearn_")
 
 if __name__ == "__main__":
     main()

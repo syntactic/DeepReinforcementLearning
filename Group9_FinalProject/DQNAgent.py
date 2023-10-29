@@ -80,6 +80,7 @@ class DQNAgent(Agent):
             #print(f"current_Q: {current_Q.shape}, action: {action.shape}")
             input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
 
+            print(f"input_batch: {input_batch.shape}, Y: {Y.shape}")
             loss = self.loss_fn(input_batch, Y)
             self.optimizer.zero_grad()
             loss.backward()

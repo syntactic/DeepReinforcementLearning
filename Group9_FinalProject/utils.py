@@ -180,6 +180,8 @@ class Model():
             
             win = grid.check_game_over()
         
+        V_map[grid.win_state.y, grid.win_state.x] = 0.0
+        
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(4, 4))
         ax.imshow(V_map)
         if save:
@@ -228,7 +230,6 @@ def get_max_Q(Q, alpha=0.001):
 # loss(input, output) -> iq_loss(current_V, y)
 def iq_loss(current_Q, current_V, y): # args, etc
     """ heavily inspired by https://github.com/Div99/IQ-Learn/blob/main/iq_learn/iq.py """
-
     # Notes: (our explanation of what iq loss is doing)
     # the loss takes in 2 points -> 
     #       'reward' (calculated as current Q - expected value of next state)

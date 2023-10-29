@@ -62,7 +62,7 @@ class IQLearnAgent(Agent):
             self.epsilon = self.epsilon_floor
 
     def train(self):
-        if self.buffer.size() >= self.batch_size:
+        if self.expert_buffer.size() >= self.batch_size:
             state, next_state, action, _, done = self.expert_buffer.get_samples(self.batch_size)
             action = torch.as_tensor(action, dtype=torch.int64, device=self.model.device)
             if action.ndim == 1:
@@ -76,7 +76,7 @@ class IQLearnAgent(Agent):
             #  calculate 1st term for IQ loss
             #  -E_(ρ_expert)[Q(s, a) - γV(s')]
             y = (1 - done) * self.gamma * next_V
-            reward = (current_Q - y)#[is_expert]
+            #reward = (current_Q - y)#[is_expert]
 
 
             #
