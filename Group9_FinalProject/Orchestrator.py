@@ -62,13 +62,14 @@ class Orchestrator:
             while(playing):
 
                 # set state
-                state = self.game.get_state()
+                state = np.copy(self.game.get_state())
 
                 # get action from agent based on state
                 action = self.agent.get_action(state)
 
                 # get next_state, reward, and whether the game was won
                 next_state, reward, game_over = self.game.step(action)
+                next_state = np.copy(next_state)
 
                 # add data to trajectories
                 self.trajectories[-1].append((np.copy(state), action, reward, np.copy(next_state), game_over))

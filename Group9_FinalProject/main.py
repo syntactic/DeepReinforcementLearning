@@ -52,7 +52,7 @@ def unroll_grid(state):
     return s
 
 def main():
-    NUM_TIMESTEPS = 200000
+    NUM_TIMESTEPS = 20000
     MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
@@ -70,7 +70,7 @@ def main():
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.format_state = unroll_grid
         model.print()
-        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=1)
+        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8)
 
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
