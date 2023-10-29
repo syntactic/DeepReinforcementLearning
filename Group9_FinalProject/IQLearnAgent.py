@@ -52,8 +52,8 @@ class IQLearnAgent(Agent):
         # training after x number of steps instead of after every step
         # TODO think about parameters to control whether the agent is training or testing, etc
 
-        if self.training:
-            self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
+        #if self.training:
+            #self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
             
         # epsilon decay
         if self.epsilon > 0.1:
@@ -64,17 +64,20 @@ class IQLearnAgent(Agent):
     def train(self):
         if self.buffer.size() >= self.batch_size:
             state, next_state, action, _, done = self.expert_buffer.get_samples(self.batch_size)
+            action = torch.as_tensor(action, dtype=torch.int64, device=self.model.device)
+            if action.ndim == 1:
+                action = action.unsqueeze(1)
+            done = torch.as_tensor(done, dtype=torch.float, device=self.model.device)
             Q_vals = self.model.get_Q(state)
-            current_Q = Q_vals[action]
+            current_Q = Q_vals.gather(2, action.unsqueeze(1)).squeeze()
             current_V = get_max_Q(Q_vals)
-            next_V = get_max_Q(self.model_get_q(next_state))
+            next_V = get_max_Q(self.model.get_Q(next_state))
 
             #  calculate 1st term for IQ loss
             #  -E_(ρ_expert)[Q(s, a) - γV(s')]
             y = (1 - done) * self.gamma * next_V
             reward = (current_Q - y)#[is_expert]
 
-            input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
 
             #
             loss = iq_loss(current_Q, current_V, y)

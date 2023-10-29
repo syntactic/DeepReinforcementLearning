@@ -54,7 +54,7 @@ def unroll_grid(state):
 def main():
     NUM_TIMESTEPS = 20000
     MAX_MOVES_PER_GAME = 100
-    AGENT_TYPE = DQN_AGENT
+    AGENT_TYPE = IQ_LEARN_AGENT
     PLAYER_START = RANDOM_START
     WALLS = STATIC_WALLS
 
@@ -77,9 +77,9 @@ def main():
         # every state (basically snaking up and down columns until it reaches the win). However, without a specific
         # obstacle free arrangement at the beginning of play, the game will end without hittign every state
 
-        #model.load('bad_dqn_20000stepsmodel.pt')
+        #model.load('model.pt')
         #grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
-        #model.estimate_value_map(grid_vmap_estimation)
+        #model.estimate_value_map(grid_vmap_estimation, save=True)
 
         agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8)
 
@@ -93,7 +93,7 @@ def main():
         model.print()
         expert_buffer = Buffer()
         expert_buffer.load_trajectories("trained_dqn_100.pkl", num_trajectories=50)
-        agent = IQLearnAgent(model=model, action_space=game.action_space, training=True)
+        agent = IQLearnAgent(model=model, action_space=game.action_space, training=True, epsilon=0, epsilon_floor=0)
         agent.format_state = unroll_grid
         agent.set_expert_buffer(expert_buffer)
          

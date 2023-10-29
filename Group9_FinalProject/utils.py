@@ -222,8 +222,8 @@ def read_file(path: str, file_handle):
         raise NotImplementedError
     return data
 
-def get_max_Q(q, alpha=0.001):
-    return alpha * torch.logsumexp(q/alpha, dim=1, keepdim=True)
+def get_max_Q(Q, alpha=0.001):
+    return (alpha * torch.logsumexp(Q/alpha, dim=2, keepdim=True)).squeeze()
 
 # loss(input, output) -> iq_loss(current_V, y)
 def iq_loss(current_Q, current_V, y): # args, etc
