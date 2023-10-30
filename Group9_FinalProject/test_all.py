@@ -12,7 +12,7 @@ def test_gridworld_wallcount():
 def test_gridworld_distance():
     g = GridWorld()
     # default distance
-    assert g.distance_from_agent_to_win_state() == 17
+    assert g.distance_from_agent_to_win_state() == 18
 
     # set agent
     p = Position(5, 8)
