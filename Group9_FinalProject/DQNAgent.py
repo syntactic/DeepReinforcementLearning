@@ -5,7 +5,7 @@ from Agent import Agent
 from utils import Buffer
 
 class DQNAgent(Agent):
-    def __init__(self, model, action_space:np.ndarray, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
+    def __init__(self, action_space:np.ndarray, model, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
         super().__init__(action_space, name)
         self.model = model
         self.loss_fn = torch.nn.MSELoss()
@@ -30,8 +30,8 @@ class DQNAgent(Agent):
         qval = qval_tensor.data.numpy() 
 
         # choose the next action (random or on policy based on epsilon)
-            # currently, the agent can choose impossible actions, which
-            # will result in no change to the state
+        # currently, the agent can choose impossible actions, which
+        # will result in no change to the state
         if (random.random() < self.epsilon):
             action = np.random.choice(self.action_space, size=1)[0]
         else:
@@ -76,11 +76,8 @@ class DQNAgent(Agent):
             Y[done_indices] = reward[done_indices]
             Y = Y.squeeze()
 
-            #action = action.unsqueeze(1)
-            #print(f"current_Q: {current_Q.shape}, action: {action.shape}")
             input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
 
-            print(f"input_batch: {input_batch.shape}, Y: {Y.shape}")
             loss = self.loss_fn(input_batch, Y)
             self.optimizer.zero_grad()
             loss.backward()
