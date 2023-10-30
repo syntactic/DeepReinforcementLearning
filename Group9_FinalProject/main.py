@@ -68,7 +68,6 @@ def main():
 
     elif AGENT_TYPE == DQN_AGENT:
         model = Model(init_grid_model(game.num_states, game.action_space))
-        model.load('dqn_1000games_model.pt')
         model.format_state = unroll_grid
         model.print()
 
