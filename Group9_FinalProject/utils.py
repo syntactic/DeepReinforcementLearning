@@ -99,7 +99,6 @@ class Model():
         self.model = model
         self.name = name
         self.loss_bucket = []
-        self.losses = []
         self.format_state = lambda x : x
         self.device = 'cpu'
     
