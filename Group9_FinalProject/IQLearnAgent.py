@@ -5,8 +5,9 @@ from Agent import Agent
 from utils import Buffer, iq_loss, get_max_Q
 
 class IQLearnAgent(Agent):
-    def __init__(self, action_space:np.ndarray, model, name:str = "dqn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
+    def __init__(self, action_space:np.ndarray, model, name:str = "IQLearn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
         super().__init__(action_space)
+        self.name = name
         self.model = model
         self.loss_fn = iq_loss
         self.learning_rate = 1e-3

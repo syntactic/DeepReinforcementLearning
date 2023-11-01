@@ -27,46 +27,10 @@ class Buffer():
     def get_samples(self, batch_size, device='cpu'):
         batch = self.sample(batch_size)
 
-        # game play -> [tensors]
-        # 
         batch_state, batch_action, batch_reward, batch_next_state, batch_done = zip(
             *batch)
 
         assert len(batch_state) > 0
-        assert type(batch_state[0])
-        # need to correct this in load_trajectories (?) -> it should match the online samples format
-        # for loaded trajectories -> (batch size, 
-        # for online samples -> (batch size, 1, 100)
-     
-        """batch_state = np.array(batch_state)
-        batch_next_state = np.array(batch_next_state)
-        batch_action = np.array(batch_action)
-
-        print(f"before b {batch_state[0].shape}")
-        for i,s in enumerate(batch_state):
-            s = format_state(s)
-            #batch_state[i] = format_state(s)
-        print(f"after b {batch_state[0].shape}")
-
-        print(f"before n_b {batch_next_state[0].shape}")
-        for s in batch_next_state:
-            s = format_state(s)
-        print(f"after n_b {batch_next_state[0].shape}")
-
-        for i in range(len(batch_state)):
-            for j in range(len(batch_state[0])):
-                print(i, j, len(batch_state[i][j]))
-
-        print('---------------')
-
-        batch_state = torch.as_tensor(batch_state, dtype=torch.float, device=device)
-        batch_next_state = torch.as_tensor(batch_next_state, dtype=torch.float, device=device)
-        batch_action = torch.as_tensor(batch_action, dtype=torch.int64, device=device)
-        if batch_action.ndim == 1:
-            batch_action = batch_action.unsqueeze(1)
-        batch_reward = torch.as_tensor(batch_reward, dtype=torch.float, device=device).unsqueeze(1)
-        #print(batch_done)
-        batch_done = torch.as_tensor(batch_done, dtype=torch.float, device=device).unsqueeze(1)"""
 
         return batch_state, batch_next_state, batch_action, batch_reward, batch_done
 
@@ -128,7 +92,7 @@ class Model():
             plt.tight_layout()
             fig.savefig(path + self.name + '.svg', format='svg', dpi=1200, bbox_inches='tight')
         plt.show()
-    
+
     def save(self, path=""):
         torch.save(self.model.state_dict(), path+self.name+'.pt')
     
