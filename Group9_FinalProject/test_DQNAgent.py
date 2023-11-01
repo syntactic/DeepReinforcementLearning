@@ -19,3 +19,6 @@ def dqn_agent(ten_by_ten_static_grid):
 def test_action(ten_by_ten_static_grid, dqn_agent):
     action = dqn_agent.get_action(ten_by_ten_static_grid.get_state())
     assert action >= 0 and action <= ten_by_ten_static_grid.action_space.size
+
+def test_has_model(ten_by_ten_static_grid, dqn_agent):
+    assert dqn_agent.has_model()

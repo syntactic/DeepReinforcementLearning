@@ -40,6 +40,7 @@ class Agent:
         self.game_over = None
         self.action = None
         self.training = False
+        self.model = None
     
     def get_action(self, state):
 
@@ -62,3 +63,5 @@ class Agent:
         self.reward = float("nan")
         self.game_over = float("nan")
 
+    def has_model(self):
+        return self.model is not None

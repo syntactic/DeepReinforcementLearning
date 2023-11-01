@@ -201,5 +201,18 @@ class GridWorld:
         return grid_image
         
     def distance_from_agent_to_win_state(self):
-        p = self.win_state - self.player_pos
-        return p.x + p.y
+        return abs(self.win_state.x - self.player_pos.x) + abs(self.win_state.y - self.player_pos.y)
+
+    def get_full_state_space(self):
+        """ returns all states """
+        grid = np.copy(self.state)
+        grid[self.player_pos.y, self.player_pos.x] = FLOOR
+
+        states = []
+        for y in range(self.height):
+            for x in range(self.width):
+                if grid[y, x] != WALL:
+                    states.append(np.copy(grid))
+                    states[-1][y, x] = PLAYER
+
+        return states
