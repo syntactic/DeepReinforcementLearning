@@ -81,17 +81,8 @@ class Model():
         self.loss_bucket.append(loss_item)
 
     def plot_losses(self, path = "", save=False):
-        # set up the figure and axes
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
-
-        ax.plot(range(len(self.loss_bucket)), self.loss_bucket)
-        ax.set_xlabel('training steps')
-        ax.set_ylabel('loss')
-        
-        if save:
-            plt.tight_layout()
-            fig.savefig(path + self.name + '.svg', format='svg', dpi=1200, bbox_inches='tight')
-        plt.show()
+        plot_values_over_index(self.loss_bucket, filename=self.name + "_losses",
+                xlabel='training steps', ylabel='loss', save=save)
 
     def save(self, path=""):
         torch.save(self.model.state_dict(), path+self.name+'.pt')
@@ -230,3 +221,16 @@ def get_concat_samples(policy_batch, expert_batch):
                            torch.ones_like(expert_batch_reward, dtype=torch.bool)], dim=0)
 
     return batch_state, batch_next_state, batch_action, batch_reward, batch_done, is_expert
+
+def plot_values_over_index(data, path = "", filename="graph", xlabel='x', ylabel='y', figsize=(8, 4), save=False):
+    # set up the figure and axes
+    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
+
+    ax.plot(range(len(data)), data)
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+
+    if save:
+        plt.tight_layout()
+        fig.savefig(path + filename + '.svg', format='svg', dpi=1200, bbox_inches='tight')
+    plt.show()

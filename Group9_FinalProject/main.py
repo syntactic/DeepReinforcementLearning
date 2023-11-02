@@ -54,7 +54,7 @@ def unroll_grid(state):
 def main():
     NUM_TIMESTEPS = 10000
     MAX_MOVES_PER_GAME = 100
-    AGENT_TYPE = IQ_LEARN_AGENT
+    AGENT_TYPE = DQN_AGENT
     PLAYER_START = RANDOM_START
     WALLS = STATIC_WALLS
 
@@ -81,7 +81,7 @@ def main():
         #grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
         #model.estimate_value_map(grid_vmap_estimation, save=True)
 
-        agent = DQNAgent(model=model, action_space=game.action_space, training=False, batch_size=8, name='good_dqn', epsilon=0, epsilon_floor=0)
+        agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8, name='dqn')
 
     elif AGENT_TYPE == HUMAN_AGENT:
         visualize_game = True
@@ -114,8 +114,9 @@ def main():
     # plot distance ratios
     orchestrator.plot_distance_ratios(save=True)
 
-    # plot the model's losses
-    model.plot_losses(save=True)
+    if agent.has_model():
+        # plot the model's losses
+        agent.model.plot_losses(save=True)
 
     grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
     model.estimate_value_map(grid_vmap_estimation, save=True, path="bad_iqlearn_")
