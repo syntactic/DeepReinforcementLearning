@@ -27,22 +27,25 @@ Basic idea: feed it an agent, a game, and a number of games to play
 # TODO , get rid of agent.save_results etc and the methods within Agent
 class Orchestrator:
 
-    def __init__(self, game:GridWorld, agent:Agent, num_timesteps:int, visualize:bool=False):
+    def __init__(self, game:GridWorld, agent:Agent, num_timesteps:int, visualize:bool=False, until_game:bool=False, until_game_limit:int=1000):
         self.game = game
         self.agent = agent
         self.num_timesteps = num_timesteps
-        self.trajectories = [] # should trajectories belong to agents?
+        self.trajectories = [] 
         self.distance_ratios = []
         self.visualize = visualize
         if self.visualize:
             self.window = GameWindow()
-    
+        self.game_index = 0
+        self.until_game=until_game
+        self.until_game_limit=until_game_limit
     def play(self):
 
+        reached_limit = False
         timestep = 0
-        game_index = 0
-        while timestep < self.num_timesteps:
-            print('Playing game', game_index, '... ', end='')
+        self.game_index = 0
+        while timestep < self.num_timesteps and not reached_limit:
+            print('Playing game', self.game_index, '... ', end='')
 
             # intialize the game
             self.game.reset()
@@ -86,11 +89,14 @@ class Orchestrator:
                 playing = not game_over
 
                 if not playing:
-                    game_index += 1
+                    self.game_index += 1
                     ratio = self.game.moves_made / shortest_distance
                     self.distance_ratios.append(ratio)
                     print("total moves:", self.game.moves_made, " (" + str(round(ratio, 4)) + ") ", end="")
                     print('game over.')
+
+                    if self.until_game:
+                        reached_limit = self.game_index >= self.until_game_limit
 
                 if self.visualize:
                     # draw game stuff
