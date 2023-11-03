@@ -133,14 +133,6 @@ class Orchestrator:
                          'dones':dones}, file)
 
     def plot_distance_ratios(self, path = "", save=False):
-        # set up the figure and axes
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(8, 4))
-
-        ax.plot(range(len(self.distance_ratios)), self.distance_ratios)
-        ax.set_xlabel('games')
-        ax.set_ylabel('ratio of steps to shortest distance')
-        
-        if save:
-            plt.tight_layout()
-            fig.savefig(path + self.agent.name + "_distance_ratios" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
-        plt.show()
+        plot_values_over_index(self.distance_ratios, save=save, figsize=(8,4),
+                filename=self.agent.name + "_distance_ratios",
+                xlabel="games", ylabel="ratio of steps to shortest distance")
