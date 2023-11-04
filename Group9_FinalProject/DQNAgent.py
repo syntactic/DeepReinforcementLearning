@@ -58,33 +58,34 @@ class DQNAgent(Agent):
             self.epsilon = self.epsilon_floor
 
     def train(self):
-        if self.buffer.size() >= self.batch_size:
-            state, next_state, action, reward, done = self.buffer.get_samples(self.batch_size)
-            action = torch.as_tensor(action, dtype=torch.int64, device=self.model.device)
-            if action.ndim == 1:
-                action = action.unsqueeze(1)
-            reward = torch.as_tensor(reward, dtype=torch.float, device=self.model.device).unsqueeze(1)
-            done = torch.as_tensor(done, dtype=torch.float, device=self.model.device).unsqueeze(1)
-            current_Q = self.model.get_Q(state)
+        if self.buffer.size() < self.batch_size:
+            return
+        state, next_state, action, reward, done = self.buffer.get_samples(self.batch_size)
+        action = torch.as_tensor(action, dtype=torch.int64, device=self.model.device)
+        if action.ndim == 1:
+            action = action.unsqueeze(1)
+        reward = torch.as_tensor(reward, dtype=torch.float, device=self.model.device).unsqueeze(1)
+        done = torch.as_tensor(done, dtype=torch.float, device=self.model.device).unsqueeze(1)
+        current_Q = self.model.get_Q(state)
 
-            with torch.no_grad():
-                new_Q = self.model.get_Q(next_state)
-            max_Q = torch.max(new_Q, 2).values
+        with torch.no_grad():
+            new_Q = self.model.get_Q(next_state)
+        max_Q = torch.max(new_Q, 2).values
 
-            Y = reward + (self.gamma * max_Q)
-            done_indices = done == True
-            Y[done_indices] = reward[done_indices]
-            Y = Y.squeeze()
+        Y = reward + (self.gamma * max_Q)
+        done_indices = done == True
+        Y[done_indices] = reward[done_indices]
+        Y = Y.squeeze()
 
-            input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
+        input_batch = current_Q.gather(2, action.unsqueeze(1)).squeeze()
 
-            loss = self.loss_fn(input_batch, Y)
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
+        loss = self.loss_fn(input_batch, Y)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
 
-            # track loss from training
-            self.model.append_to_loss_bucket(loss.item())
+        # track loss from training
+        self.model.append_to_loss_bucket(loss.item())
 
             
     def reset(self):
