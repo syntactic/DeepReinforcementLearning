@@ -3,6 +3,7 @@ from DQNAgent import *
 from GridWorld import *
 from main import init_grid_model, unroll_grid
 from constants import *
+from Model import Model
 
 @pytest.fixture
 def ten_by_ten_static_grid():

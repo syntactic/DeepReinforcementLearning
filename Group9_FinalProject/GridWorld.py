@@ -35,6 +35,24 @@ class GridWorld:
         self.num_states = self.width * self.height
         self.max_moves_per_game = max_moves_per_game
         self.moves_made = 0
+
+    @classmethod
+    def from_state(cls, state, win_state):
+        """
+        This takes a state (2d numpy array) and creates an underspecified
+        GridWorld from it. It's meant to be used for the reward recovery.
+        """
+        shape = state.shape
+
+        g = cls()
+        g.height = shape[0]
+        g.width = shape[1]
+        g.player_pos = Position(*index_of_value_in_2d_array(state, PLAYER)[::-1]) # ugly way of getting col, row
+        g.win_state = win_state
+        g.state = state
+
+        return g
+
     
     def new_player_pos(self):
         if self.random_start:
@@ -138,7 +156,7 @@ class GridWorld:
         within_bounds = (new_pos.x >=0 and new_pos.x < self.width) and \
                         (new_pos.y >=0 and new_pos.y < self.height)
         if(within_bounds):
-           possible = not(self.state[new_pos.y, new_pos.x] == WALL)
+           possible = self.state[new_pos.y, new_pos.x] != WALL
         
         return possible
         
@@ -159,8 +177,11 @@ class GridWorld:
     def step(self, action):
         """Transition the current state into the next state given an action"""
         self.moves_made +=1
+        tile_below_player = FLOOR
+        if self.player_pos == self.win_state:
+            tile_below_player = WIN
         if(self.check_possible(action)):
-            self.state[self.player_pos.y, self.player_pos.x] = FLOOR
+            self.state[self.player_pos.y, self.player_pos.x] = tile_below_player
             self.player_pos = self.update_position(self.player_pos, action)
             self.state[self.player_pos.y, self.player_pos.x] = PLAYER
         

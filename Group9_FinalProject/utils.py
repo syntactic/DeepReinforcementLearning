@@ -2,6 +2,7 @@ import numpy as np
 import random, os, pickle, torch
 from collections import deque
 import matplotlib.pyplot as plt
+from constants import *
 
 class Buffer():
     # heavily inspired by https://github.com/Div99/IQ-Learn/iq_learn/dataset/*
@@ -58,93 +59,6 @@ class Buffer():
         else:
             raise ValueError(f"{filepath} is not a valid path")
 
-class Model():
-    def __init__(self, model, name="model"):
-        self.model = model
-        self.name = name
-        self.loss_bucket = []
-        self.format_state = lambda x : x
-        self.device = 'cpu'
-    
-    def get_Q(self, states):
-
-        states = [self.format_state(state) for state in states]
-        batch_states = np.array(states)
-        batch_states = torch.as_tensor(batch_states, dtype=torch.float, device=self.device)
-
-        return self.model(batch_states)
-    
-    def parameters(self):
-        return self.model.parameters()
-    
-    def append_to_loss_bucket(self, loss_item):
-        self.loss_bucket.append(loss_item)
-
-    def plot_losses(self, path = "", save=False):
-        plot_values_over_index(self.loss_bucket, filename=self.name + "_losses",
-                xlabel='training steps', ylabel='loss', save=save)
-
-    def save(self, path=""):
-        torch.save(self.model.state_dict(), path+self.name+'.pt')
-    
-    def load(self, path):
-        self.model.load_state_dict(torch.load(path))
-        self.model.eval()
-
-    def print(self):
-        print(self.model)
-    
-    def estimate_value_map(self, grid, save=False, path=""):
-        """ estimates a value map by steping through every available tile in the 
-            grid and passing it through the model to get Q values. The value map
-            is the max q value for each state """
-        
-        # set up an empty value map
-        V_map = np.empty((grid.width, grid.height))
-
-        # this will update itself as the game progresses
-        state = grid.state 
-
-        up_move = True
-        down_move = False
-
-        win = False
-
-        while not win:
-            #grid.visualize_grid()
-            # get current Q val
-            with torch.no_grad():
-                Q_vals = self.model(self.format_state(state))
-
-            # get max
-            V = torch.max(Q_vals, 1).values
-            # set value in valuse map
-            V_map[grid.player_pos.y, grid.player_pos.x] = V
-
-            # determine if the player needs to turn
-            if (up_move and grid.player_pos.y == 0) or (down_move and grid.player_pos.y == grid.height-1):
-                grid.step(1)
-                up_move = not up_move
-                down_move = not down_move
-            else:
-                if up_move:
-                    grid.step(0)
-                elif down_move:
-                    grid.step(2)
-            
-            win = grid.check_game_over()
-        
-        V_map[grid.win_state.y, grid.win_state.x] = 0.0
-        
-        fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(4, 4))
-        ax.imshow(V_map)
-        if save:
-            plt.tight_layout()
-            fig.savefig(path+self.name + "VMap" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
-        plt.show()
-
-            
-            
 
 
 class Position:
@@ -154,6 +68,9 @@ class Position:
 
     def __sub__(self, other_position):
         return Position(self.x - other_position.x, self.y - other_position.y)
+
+    def __eq__(self, other):
+        return (self.x, self.y) == (other.x, other.y)
 
     def __repr__(self):
         return f"({self.x}, {self.y})"
@@ -234,3 +151,7 @@ def plot_values_over_index(data, path = "", filename="graph", xlabel='x', ylabel
         plt.tight_layout()
         fig.savefig(path + filename + '.svg', format='svg', dpi=1200, bbox_inches='tight')
     plt.show()
+
+def index_of_value_in_2d_array(arr : np.ndarray, val):
+    val_index = np.where(arr == val)
+    return val_index[0][0], val_index[1][0]

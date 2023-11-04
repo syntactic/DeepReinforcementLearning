@@ -62,7 +62,7 @@ class Orchestrator:
                     return None
 
             # play until the game is over
-            while(playing):
+            while playing and timestep < self.num_timesteps:
 
                 # set state
                 state = np.copy(self.game.get_state())
