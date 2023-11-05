@@ -1,5 +1,5 @@
 import numpy as np
-from utils import plot_values_over_index
+from utils import plot_values_over_index, get_max_Q, index_of_value_in_2d_array
 import matplotlib.pyplot as plt
 import torch
 from constants import *
@@ -13,12 +13,14 @@ class Model():
         self.format_state = lambda x : x
         self.device = 'cpu'
     
-    def get_Q(self, states):
+    def get_Q(self, states, no_grad=False):
 
         states = [self.format_state(state) for state in states]
         batch_states = np.array(states)
         batch_states = torch.as_tensor(batch_states, dtype=torch.float, device=self.device)
-
+        if no_grad:
+            with torch.no_grad():
+                return self.model(batch_states)
         return self.model(batch_states)
     
     def parameters(self):
@@ -42,22 +44,22 @@ class Model():
         print(self.model)
 
     def estimate_reward_map(self, grid, save=False, path=""):
-        reward_map = np.empty((grid.width, grid.height))
+        reward_map = np.zeros((grid.width, grid.height))
         state_list = grid.get_full_state_space()
         gamma = 0.9
 
         for next_state in state_list:
             rewards_for_next_state = []
             for action in ACTIONS:
-                g_next_state = GridWorld.from_state(next_state, grid.win_state)
+                g_next_state = GridWorld.from_state(np.copy(next_state), grid.win_state)
                 prev_state, _, _ = g_next_state.step(action)
                 if np.array_equal(prev_state, next_state):
                     continue
                 action_reverse = (action + 2) + (action >= 2) * -4
                 done = g_next_state.player_pos == g_next_state.win_state
-                Q_vals = self.get_Q(prev_state)
-                current_Q = Q_vals.gather(2, action).squeeze()
-                next_V = get_max_Q(self.model.get_Q(next_state))
+                Q_vals = self.get_Q([prev_state], no_grad=True).squeeze()
+                current_Q = Q_vals[action]
+                next_V = get_max_Q(self.get_Q([next_state], no_grad=True))
                 y = (1 - done) * gamma * next_V
                 reward = current_Q - y
                 rewards_for_next_state.append(reward)
@@ -70,6 +72,8 @@ class Model():
             plt.tight_layout()
             fig.savefig(path+self.name + "reward_map" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
         plt.show()
+        plt.clf()
+        plt.close()
 
     
     def estimate_value_map(self, grid, save=False, path=""):
@@ -120,3 +124,5 @@ class Model():
             plt.tight_layout()
             fig.savefig(path+self.name + "VMap" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
         plt.show()
+        plt.clf()
+        plt.close()

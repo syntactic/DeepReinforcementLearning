@@ -151,6 +151,8 @@ def plot_values_over_index(data, path = "", filename="graph", xlabel='x', ylabel
         plt.tight_layout()
         fig.savefig(path + filename + '.svg', format='svg', dpi=1200, bbox_inches='tight')
     plt.show()
+    plt.clf()
+    plt.close()
 
 def index_of_value_in_2d_array(arr : np.ndarray, val):
     val_index = np.where(arr == val)
