@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import argparse
 
 from GridWorld import GridWorld
 from Agent import Agent
@@ -22,6 +23,9 @@ RANDOM_START = 1
 
 STATIC_WALLS = 0
 RANDOM_WALLS = 1
+
+DEFAULT_TIMESTEPS = 5000
+DEFAULT_MAX_MOVES_PER_GAME = 100
 
 def init_grid_model(input_size, action_space):
         """ provides an default model for the gridworld problem """
@@ -52,22 +56,44 @@ def unroll_grid(state):
     s = torch.from_numpy(s).float() 
     return s
 
+def create_argument_parser():
+    parser = argparse.ArgumentParser(prog='GridWorld Player',
+            description='Plays gridworld with any of several agent types: \
+            human, random, DQN, IQ Learn.')
+    parser.add_argument('-t', '--timesteps', default=DEFAULT_TIMESTEPS, type=int)
+    parser.add_argument('-m', '--max_moves', default=DEFAULT_MAX_MOVES_PER_GAME, type=int)
+    parser.add_argument('-rs', '--random_start', action='store_true', default=True)
+    parser.add_argument('-rw', '--random_walls', action='store_true', default=False)
+    subparser = parser.add_subparsers(dest='agent_type')
+    # this doesn't trigger any of the DQN subparser, so keep in mind if you want to add options for DQN
+    subparser.default = 'dqn' 
+    subparser.add_parser('human')
+    subparser.add_parser('random')
+    dqn_subparser = subparser.add_parser('dqn')
+    iq_learn_subparser = subparser.add_parser('iq')
+    iq_learn_subparser.add_argument('-d', '--data', required=True)
+
+    return parser
+
 def main():
-    NUM_TIMESTEPS = 5000
-    MAX_MOVES_PER_GAME = 100
     AGENT_TYPE = IQ_LEARN_AGENT
     PLAYER_START = RANDOM_START
     WALLS = STATIC_WALLS
 
+    parser = create_argument_parser()
+    args = parser.parse_args()
+    # may want to delete this once we know it's working correctly
+    print(args)
+
     # create the game object
-    game = GridWorld(10, 10, random_board=WALLS, random_start=PLAYER_START, max_moves_per_game=MAX_MOVES_PER_GAME)
+    game = GridWorld(10, 10, random_board=args.random_walls, random_start=args.random_start, max_moves_per_game=args.max_moves)
 
     # create the agent
     visualize_game = False
-    if AGENT_TYPE == RANDOM_AGENT:
+    if args.agent_type == 'random':
         agent = Agent(action_space=game.action_space)
 
-    elif AGENT_TYPE == DQN_AGENT:
+    elif args.agent_type == 'dqn':
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.format_state = unroll_grid
         model.print()
@@ -84,33 +110,34 @@ def main():
 
         agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8, name='dqn')
 
-    elif AGENT_TYPE == HUMAN_AGENT:
+    elif args.agent_type == 'human':
         visualize_game = True
         agent = HumanAgent("test", game.action_space)
 
-    elif AGENT_TYPE == IQ_LEARN_AGENT:
+    elif args.agent_type == 'iq':
         model = Model(init_grid_model(game.num_states, game.action_space))
         model.format_state = unroll_grid
         model.print()
 
-        grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
-        model.estimate_value_map(grid_vmap_estimation, save=True, path="bad_iqlearn_")
-
         expert_buffer = Buffer(memory_size=1024)
-        expert_buffer.load_trajectories("dqn_20000.pkl", num_trajectories=100)
+        expert_buffer.load_trajectories(args.data, num_trajectories=100)
         agent = IQLearnAgent(model=model, action_space=game.action_space, training=True, epsilon=1, epsilon_floor=0.1)
         agent.format_state = unroll_grid
         agent.set_expert_buffer(expert_buffer)
 
+    if agent.has_model():
+        grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
+        model.estimate_value_map(grid_vmap_estimation, save=True, path=f"untrained_{agent.name}_")
+
 
     # create the orchestrator, which controls the game, with the game and agent objects
-    orchestrator = Orchestrator(game=game, agent=agent, num_timesteps=NUM_TIMESTEPS, visualize=visualize_game)
+    orchestrator = Orchestrator(game=game, agent=agent, num_timesteps=args.timesteps, visualize=visualize_game)
     
     # play num_games games with the game and agent objects
     orchestrator.play()
 
     # save the trajectories of play from the games
-    orchestrator.save_trajectories(filepath=f"{agent.name}_{NUM_TIMESTEPS}.pkl")
+    orchestrator.save_trajectories(filepath=f"{agent.name}_{args.timesteps}.pkl")
 
     # plot distance ratios
     orchestrator.plot_distance_ratios(save=True)
@@ -119,10 +146,7 @@ def main():
         # plot the model's losses
         agent.model.plot_losses(save=True)
         agent.model.estimate_reward_map(game, save=True)
-        agent.model.estimate_value_map(grid_vmap_estimation, save=True, path="trained_iqlearn_")
-
-    grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
-    model.estimate_value_map(grid_vmap_estimation, save=True, path="bad_iqlearn_")
+        agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"trained_{agent.name}_")
 
 if __name__ == "__main__":
     main()
