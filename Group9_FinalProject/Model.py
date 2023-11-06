@@ -53,10 +53,10 @@ class Model():
             for action in ACTIONS:
                 g_next_state = GridWorld.from_state(np.copy(next_state), grid.win_state)
                 prev_state, _, _ = g_next_state.step(action)
-                if np.array_equal(prev_state, next_state):
-                    continue
                 action_reverse = (action + 2) + (action >= 2) * -4
                 done = g_next_state.player_pos == g_next_state.win_state
+                if np.array_equal(prev_state, next_state) and done: # skip win state wall moves
+                    continue
                 Q_vals = self.get_Q([prev_state], no_grad=True).squeeze()
                 current_Q = Q_vals[action]
                 next_V = get_max_Q(self.get_Q([next_state], no_grad=True))
@@ -70,10 +70,11 @@ class Model():
         ax.imshow(reward_map)
         if save:
             plt.tight_layout()
-            fig.savefig(path+self.name + "reward_map" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
+            fig.savefig(path+self.name + "_reward_map" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
         plt.show()
         plt.clf()
         plt.close()
+        np.savetxt(path+self.name + "_reward_map.txt", reward_map, fmt='%8.3f')
 
     
     def estimate_value_map(self, grid, save=False, path=""):
@@ -115,6 +116,7 @@ class Model():
                     grid.step(2)
             
             win = grid.check_game_over()
+        grid.reset()
         
         V_map[grid.win_state.y, grid.win_state.x] = 0.0
         
@@ -122,7 +124,7 @@ class Model():
         ax.imshow(V_map)
         if save:
             plt.tight_layout()
-            fig.savefig(path+self.name + "VMap" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
+            fig.savefig(path+self.name + "_VMap" + '.svg', format='svg', dpi=1200, bbox_inches='tight')
         plt.show()
         plt.clf()
         plt.close()

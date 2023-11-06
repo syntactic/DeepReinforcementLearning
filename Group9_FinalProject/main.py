@@ -10,8 +10,10 @@ from HumanAgent import HumanAgent
 from Orchestrator import Orchestrator
 from utils import *
 from Model import Model
+from pathlib import Path
 
 import torch
+from constants import WALL, PLAYER, WIN
 
 RANDOM_AGENT = 0
 DQN_AGENT = 1
@@ -26,6 +28,7 @@ RANDOM_WALLS = 1
 
 DEFAULT_TIMESTEPS = 5000
 DEFAULT_MAX_MOVES_PER_GAME = 100
+DEFAULT_NUM_TRAJECTORIES = 100
 
 def init_grid_model(input_size, action_space):
         """ provides an default model for the gridworld problem """
@@ -72,6 +75,7 @@ def create_argument_parser():
     dqn_subparser = subparser.add_parser('dqn')
     iq_learn_subparser = subparser.add_parser('iq')
     iq_learn_subparser.add_argument('-d', '--data', required=True)
+    iq_learn_subparser.add_argument('-nt', '--num_trajectories', default=DEFAULT_NUM_TRAJECTORIES, type=int)
 
     return parser
 
@@ -119,15 +123,27 @@ def main():
         model.format_state = unroll_grid
         model.print()
 
-        expert_buffer = Buffer(memory_size=1024)
-        expert_buffer.load_trajectories(args.data, num_trajectories=100)
+        expert_buffer = Buffer(memory_size=2048)
+        expert_buffer.load_trajectories(args.data, num_trajectories=args.num_trajectories)
         agent = IQLearnAgent(model=model, action_space=game.action_space, training=True, epsilon=1, epsilon_floor=0.1)
         agent.format_state = unroll_grid
         agent.set_expert_buffer(expert_buffer)
 
+    
+    Path(f"./{agent.name}_{args.timesteps}").mkdir(parents=True, exist_ok=True)
     if agent.has_model():
         grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
-        model.estimate_value_map(grid_vmap_estimation, save=True, path=f"untrained_{agent.name}_")
+        agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"{agent.name}_{args.timesteps}/untrained_")
+        good_dqn_2000_array = np.zeros((10,10))
+        good_dqn_2000_array[0,5] = WALL
+        good_dqn_2000_array[5,3] = WALL
+        good_dqn_2000_array[3,3] = WALL
+        good_dqn_2000_array[4,2] = WALL
+        good_dqn_2000_array[9,7] = WALL
+        good_dqn_2000_array[9,9] = WIN
+        good_dqn_2000_array[0,0] = PLAYER
+        good_dqn_2000_grid = GridWorld.from_state(good_dqn_2000_array, win_state=Position(9,9))
+        agent.model.estimate_reward_map(game, save=True, path=f"{agent.name}_{args.timesteps}/untrained_")
 
 
     # create the orchestrator, which controls the game, with the game and agent objects
@@ -145,8 +161,8 @@ def main():
     if agent.has_model():
         # plot the model's losses
         agent.model.plot_losses(save=True)
-        agent.model.estimate_reward_map(game, save=True)
-        agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"trained_{agent.name}_")
+        agent.model.estimate_reward_map(game, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
+        agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
 
 if __name__ == "__main__":
     main()
