@@ -45,10 +45,36 @@ class Model():
 
     def estimate_reward_map(self, grid, save=False, path=""):
         reward_map = np.zeros((grid.width, grid.height))
-        state_list = grid.get_full_state_space()
+        reward_bucket = [[[] for i in range(grid.width)] for j in range(grid.height)]
+        #state_list = grid.get_full_state_space()
         gamma = 0.9
+        i = 0
+        while i < 1000: # sample a thousand times?
+            grid.reset()
+            # get initial playing boolean 
+            playing = not grid.check_game_over()
+            while playing:
+                state = grid.get_state()
+                Q_vals = self.get_Q([state], no_grad=True).squeeze()
+                action = grid.action_space[np.argmax(Q_vals)]
+                #print(Q_vals, action, Q_vals[action])
+                current_Q = Q_vals[action]
+                next_state, _, game_over = grid.step(action)
+                next_V = get_max_Q(self.get_Q([next_state], no_grad=True))
+                y = (1 - game_over) * gamma * next_V
+                reward = current_Q - y
+                row, col = index_of_value_in_2d_array(next_state, PLAYER)
+                reward_bucket[row][col].append(reward)
 
-        for next_state in state_list:
+                playing = not game_over
+            i += 1
+        for row in range(grid.height):
+            for col in range(grid.width):
+                if len(reward_bucket[row][col]) > 0:
+                    reward_map[row, col] = np.mean(reward_bucket[row][col])
+
+
+        """for next_state in state_list:
             rewards_for_next_state = []
             for action in ACTIONS:
                 g_next_state = GridWorld.from_state(np.copy(next_state), grid.win_state)
@@ -64,7 +90,7 @@ class Model():
                 reward = current_Q - y
                 rewards_for_next_state.append(reward)
             if len(rewards_for_next_state) > 0:
-                reward_map[index_of_value_in_2d_array(next_state, PLAYER)] = np.mean(rewards_for_next_state)
+                reward_map[index_of_value_in_2d_array(next_state, PLAYER)] = np.mean(rewards_for_next_state)"""
 
         fig, ax = plt.subplots(nrows=1, ncols=1, figsize=(4, 4))
         ax.imshow(reward_map)
