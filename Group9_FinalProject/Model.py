@@ -154,3 +154,4 @@ class Model():
         plt.show()
         plt.clf()
         plt.close()
+        np.savetxt(path+self.name + "_Vmap.txt", V_map, fmt='%8.3f')
