@@ -1,6 +1,8 @@
 import numpy as np
 import random
 import torch
+import torch.nn.functional as F
+from torch.distributions import Categorical
 from Agent import Agent
 from utils import Buffer, iq_loss, get_max_Q
 
@@ -30,16 +32,18 @@ class IQLearnAgent(Agent):
         # record the current state
         self.state = state
 
-        # get qval from the model
-        qval_tensor = self.model.get_Q([self.state])
-        qval = qval_tensor.data.numpy() 
-
         # choose the next action (random or on policy based on epsilon)
             # currently, the agent can choose impossible actions, which
             # will result in no change to the state
         if (random.random() < self.epsilon):
             action = np.random.choice(self.action_space, size=1)[0]
         else:
+            # get qval from the model
+            qval_tensor = self.model.get_Q([self.state]).squeeze()
+            qval = qval_tensor.data.numpy() 
+            dist = F.softmax(qval_tensor)
+            dist = Categorical(dist)
+            action = dist.sample()
             action = self.action_space[np.argmax(qval)]
 
         # store the action (assuming it is taken)
