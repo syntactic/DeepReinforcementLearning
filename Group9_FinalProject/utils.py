@@ -59,8 +59,6 @@ class Buffer():
         else:
             raise ValueError(f"{filepath} is not a valid path")
 
-
-
 class Position:
     def __init__(self, x, y):
         self.x=x
@@ -157,3 +155,32 @@ def plot_values_over_index(data, path = "", filename="graph", xlabel='x', ylabel
 def index_of_value_in_2d_array(arr : np.ndarray, val):
     val_index = np.where(arr == val)
     return val_index[0][0], val_index[1][0]
+
+
+# put these here for now
+def unroll_grid(state):
+    if torch.is_tensor(state):
+        state = state.numpy()
+    w, h = state.shape
+    
+    s = state.reshape((1, w*h )) + \
+        np.random.rand(1, w*h)/10.0 
+    s = torch.from_numpy(s).float() 
+    return s
+
+def init_grid_model(input_size, action_space):
+    """ provides an default model for the gridworld problem """
+    l1 = input_size
+    l2 = 150
+    l3 = 100
+    l4 = len(action_space)
+
+    model = torch.nn.Sequential(
+        torch.nn.Linear(l1, l2),
+        torch.nn.ReLU(),
+        torch.nn.Linear(l2, l3),
+        torch.nn.ReLU(),
+        torch.nn.Linear(l3,l4)
+    )
+
+    return model
