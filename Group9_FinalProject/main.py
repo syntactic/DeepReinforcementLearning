@@ -161,11 +161,11 @@ def main():
     orchestrator.save_trajectories(filepath=f"{agent.name}_{args.timesteps}.pkl")
 
     # plot distance ratios
-    orchestrator.plot_distance_ratios(save=True)
+    orchestrator.plot_distance_ratios(save=True, path=f"{agent.name}_{args.timesteps}/")
 
     if agent.has_model():
         # plot the model's losses
-        agent.model.plot_losses(save=True)
+        agent.model.plot_losses(save=True, path=f"{agent.name}_{args.timesteps}/")
         agent.model.estimate_reward_map(good_dqn_2000_grid, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
         agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
 
