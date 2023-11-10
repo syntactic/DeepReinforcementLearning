@@ -21,6 +21,14 @@ def four_by_four_static_grid_player_above_win(four_by_four_static_grid):
     four_by_four_static_grid.player_pos = player_pos
     return four_by_four_static_grid
 
+def test_four_by_four_static_grid_player_blocked(four_by_four_static_grid):
+    win_state = four_by_four_static_grid.win_state
+    four_by_four_static_grid.state[win_state.x-1, win_state.y] = WALL
+    four_by_four_static_grid.state[win_state.x, win_state.y-1] = WALL
+    blocked = four_by_four_static_grid.is_impossible()
+    print(four_by_four_static_grid.state)
+    assert blocked
+
 def test_move(four_by_four_static_grid):
     assert four_by_four_static_grid.state[0][0] == PLAYER
     four_by_four_static_grid.step(RIGHT)

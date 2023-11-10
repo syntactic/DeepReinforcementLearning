@@ -75,8 +75,30 @@ class GridWorld:
         if self.random_board:
             self.seed += 1
         self.state = self.generate_grid()
+        while self.is_impossible():
+            self.seed += 1
+            self.state = self.generate_grid()
         self.moves_made = 0
 
+    def is_impossible(self):
+        win_next_to_left_wall = self.win_state.x == 0
+        win_next_to_right_wall = self.win_state.x == self.width-1
+        win_next_to_top_wall = self.win_state.y == 0
+        win_next_to_bottom_wall = self.win_state.y == self.height-1
+
+        if not win_next_to_left_wall:
+            if self.state[self.win_state.y, self.win_state.x-1] in [FLOOR, PLAYER]:
+                return False
+        if not win_next_to_right_wall:
+            if self.state[self.win_state.y, self.win_state.x+1] in [FLOOR, PLAYER]:
+                return False
+        if not win_next_to_top_wall:
+            if self.state[self.win_state.y-1, self.win_state.x] in [FLOOR, PLAYER]:
+                return False
+        if not win_next_to_bottom_wall:
+            if self.state[self.win_state.y+1, self.win_state.x] in [FLOOR, PLAYER]:
+                return False
+        return True
 
     def generate_grid(self) -> np.ndarray:
         """Generate the grid environment."""
