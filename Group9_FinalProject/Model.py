@@ -32,7 +32,7 @@ class Model():
         self.loss_bucket.append(loss_item)
 
     def plot_losses(self, path = "", save=False):
-        plot_values_over_index(self.loss_bucket, filename=self.name + "_losses",
+        plot_values_over_index(self.loss_bucket, filename=path + self.name + "_losses",
                 xlabel='training steps', ylabel='loss', save=save)
 
     def save(self, path=""):
@@ -120,6 +120,7 @@ class Model():
             actions_map[s==PLAYER] = int(index[0])
         
         plot_heatmap(data=V_map, path=path+self.name + "_VMap", save=save)
+        np.savetxt(path+self.name + "_Vmap.txt", V_map, fmt='%8.3f')
 
         return V_map, actions_map
 
@@ -152,8 +153,7 @@ class Model():
         if save:
             save_fig(fig, path=path+self.name+"_policy")
 
-                
-
-        
-
-    
+        plt.tight_layout()
+        plt.show()
+        plt.clf()
+        plt.close()

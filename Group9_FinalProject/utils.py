@@ -140,6 +140,8 @@ def get_concat_samples(policy_batch, expert_batch):
 
 def index_of_value_in_2d_array(arr : np.ndarray, val):
     val_index = np.where(arr == val)
+    if val_index[0].size == 0:
+        return -1
     return val_index[0][0], val_index[1][0]
 
 
