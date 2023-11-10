@@ -20,11 +20,12 @@ LEFT = 3
 
 class GridWorld:
 
-    def __init__(self, width=10, height=10, random_board=False, random_start=False, seed=0, num_walls=5, max_moves_per_game=100, static_start_pos=Position(0,0)):
+    def __init__(self, width=10, height=10, random_board=False, random_start=False, random_win_state=False, seed=0, num_walls=5, max_moves_per_game=100, static_start_pos=Position(0,0)):
         self.width = width
         self.height = height
         self.random_start = random_start
         self.random_board = random_board
+        self.random_win_state = random_win_state
         self.static_start_pos = static_start_pos
         self.seed = seed
         self.win_state = Position(width-1, height-1)
@@ -98,7 +99,14 @@ class GridWorld:
         if not win_next_to_bottom_wall:
             if self.state[self.win_state.y+1, self.win_state.x] in [FLOOR, PLAYER]:
                 return False
-        return True
+        has_player = index_of_value_in_2d_array(self.state, PLAYER) != -1
+        has_win = index_of_value_in_2d_array(self.state, WIN) != -1
+        return has_player and has_win
+
+    def generate_random_position(self):
+        x=np.random.choice(self.width, 1)[0]
+        y=np.random.choice(self.height, 1)[0]
+        return Position(x, y)
 
     def generate_grid(self) -> np.ndarray:
         """Generate the grid environment."""
@@ -109,7 +117,9 @@ class GridWorld:
         # place agent 
         grid[self.player_pos.y, self.player_pos.x] = PLAYER
 
-        # place win tile 
+        # place win tile
+        if self.random_win_state:
+            self.win_state = self.generate_random_position()
         grid[self.win_state.y, self.win_state.x] = WIN
 
         def check_win_blocked(grid, new_wall_x, new_wall_y):
@@ -143,9 +153,10 @@ class GridWorld:
         while walls_placed < self.num_walls:
             x=np.random.choice(grid.shape[0], 1)[0]
             y=np.random.choice(grid.shape[1], 1)[0]
+            rand_pos = self.generate_random_position()
 
-            if(grid[y,x] == FLOOR and not check_win_blocked(grid, x, y)):
-                grid[y,x] = WALL
+            if grid[rand_pos.y, rand_pos.x] == FLOOR:
+                grid[rand_pos.y, rand_pos.x] = WALL
                 walls_placed+=1
 
         return grid
