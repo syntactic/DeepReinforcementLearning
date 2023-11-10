@@ -137,20 +137,6 @@ def get_concat_samples(policy_batch, expert_batch):
 
     return batch_state, batch_next_state, batch_action, batch_reward, batch_done, is_expert
 
-def plot_values_over_index(data, path = "", filename="graph", xlabel='x', ylabel='y', figsize=(8, 4), save=False):
-    # set up the figure and axes
-    fig, ax = plt.subplots(nrows=1, ncols=1, figsize=figsize)
-
-    ax.plot(range(len(data)), data)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
-
-    if save:
-        plt.tight_layout()
-        fig.savefig(path + filename + '.svg', format='svg', dpi=1200, bbox_inches='tight')
-    plt.show()
-    plt.clf()
-    plt.close()
 
 def index_of_value_in_2d_array(arr : np.ndarray, val):
     val_index = np.where(arr == val)
@@ -169,7 +155,7 @@ def unroll_grid(state):
     return s
 
 def init_grid_model(input_size, action_space):
-    """ provides an default model for the gridworld problem """
+    """ provides a default model for the gridworld problem """
     l1 = input_size
     l2 = 150
     l3 = 100
@@ -183,4 +169,19 @@ def init_grid_model(input_size, action_space):
         torch.nn.Linear(l3,l4)
     )
 
+    return model
+
+def cnn_format(state):
+    s = torch.from_numpy(state).float() 
+    s = s.unsqueeze(0) 
+    return s
+def cnn_model(state_shape, action_space):
+    model = torch.nn.Sequential(
+          torch.nn.Conv2d(1,16,kernel_size=(3,3), stride=1, padding=(1,1)),
+          torch.nn.ReLU(),
+          torch.nn.Conv2d(16,4,kernel_size=(3,3), stride=1, padding=(1,1)),
+          torch.nn.Flatten(),
+          torch.nn.Linear(256,len(action_space))
+        )
+    
     return model
