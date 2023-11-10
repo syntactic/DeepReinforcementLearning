@@ -41,10 +41,10 @@ class IQLearnAgent(Agent):
             # get qval from the model
             qval_tensor = self.model.get_Q([self.state]).squeeze()
             qval = qval_tensor.data.numpy() 
-            dist = F.softmax(qval_tensor)
+            dist = F.softmax(qval_tensor/0.01)
             dist = Categorical(dist)
             action = dist.sample()
-            action = self.action_space[np.argmax(qval)]
+            #action = self.action_space[np.argmax(qval)]
 
         # store the action (assuming it is taken)
         self.action = action
