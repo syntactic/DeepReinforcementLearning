@@ -20,12 +20,12 @@ LEFT = 3
 
 class GridWorld:
 
-    def __init__(self, width=10, height=10, random_board=False, random_start=False, random_win=False, seed=0, num_walls=5, max_moves_per_game=100, static_start_pos=Position(0,0)):
+    def __init__(self, width=10, height=10, random_board=False, random_start=False, random_win_state=False, seed=0, num_walls=5, max_moves_per_game=100, static_start_pos=Position(0,0)):
         self.width = width
         self.height = height
         self.random_start = random_start
         self.random_board = random_board
-        self.random_win = random_win
+        self.random_win_state = random_win_state
         self.static_start_pos = static_start_pos
         self.seed = seed
         self.win_state = Position(width-1, height-1)
@@ -118,7 +118,7 @@ class GridWorld:
         grid[self.player_pos.y, self.player_pos.x] = PLAYER
 
         # place win tile
-        if self.random_win:
+        if self.random_win_state:
             self.win_state = self.generate_random_position()
         grid[self.win_state.y, self.win_state.x] = WIN
 

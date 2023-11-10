@@ -69,6 +69,7 @@ def create_argument_parser():
     parser.add_argument('-m', '--max_moves', default=DEFAULT_MAX_MOVES_PER_GAME, type=int)
     parser.add_argument('-rs', '--random_start', action='store_true', default=True)
     parser.add_argument('-rw', '--random_walls', action='store_true', default=False)
+    parser.add_argument('-rws', '--random_win_state', action='store_true', default=False)
     parser.add_argument('--height', default=DEFAULT_HEIGHT, type=int)
     parser.add_argument('--width', default=DEFAULT_WIDTH, type=int)
     subparser = parser.add_subparsers(dest='agent_type')
@@ -94,7 +95,8 @@ def main():
     print(args)
 
     # create the game object
-    game = GridWorld(args.width, args.height, random_board=args.random_walls, random_start=args.random_start, max_moves_per_game=args.max_moves)
+    game = GridWorld(args.width, args.height, random_board=args.random_walls, random_start=args.random_start,
+            random_win_state=args.random_win_state, max_moves_per_game=args.max_moves)
 
     # create the agent
     visualize_game = False
