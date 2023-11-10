@@ -30,7 +30,7 @@ class Model():
         self.loss_bucket.append(loss_item)
 
     def plot_losses(self, path = "", save=False):
-        plot_values_over_index(self.loss_bucket, filename=self.name + "_losses",
+        plot_values_over_index(self.loss_bucket, filename=path + self.name + "_losses",
                 xlabel='training steps', ylabel='loss', save=save)
 
     def save(self, path=""):
