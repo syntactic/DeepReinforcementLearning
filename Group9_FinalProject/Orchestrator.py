@@ -140,6 +140,6 @@ class Orchestrator:
                          'dones':dones}, file)
 
     def plot_distance_ratios(self, path = "", save=False):
-        plot_values_over_index(self.distance_ratios, save=save, figsize=(8,4),
-                filename=path + self.agent.name + "_distance_ratios",
+        plot_values_over_index(self.distance_ratios, save=save, figsize=(8,4), path=path,
+                filename=self.agent.name + "_distance_ratios",
                 xlabel="games", ylabel="ratio of steps to shortest distance")

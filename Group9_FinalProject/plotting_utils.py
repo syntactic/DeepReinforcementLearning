@@ -143,9 +143,8 @@ def plot_values_over_index(data, path = "", filename="graph", xlabel='x', ylabel
     ax.plot(range(len(data)), data)
     ax.set_xlabel(xlabel)
     ax.set_ylabel(ylabel)
-
     if save:
-        save_fig(fig, path)
+        save_fig(fig, path + filename)
 
     plt.show()
     plt.clf()
