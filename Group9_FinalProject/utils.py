@@ -97,7 +97,7 @@ def get_max_Q(Q, alpha=0.001):
     return (alpha * torch.logsumexp(Q/alpha, dim=2, keepdim=True)).squeeze()
 
 # loss(input, output) -> iq_loss(current_V, y)
-def iq_loss(current_Q, current_V, y): # args, etc
+def iq_loss(current_Q, current_V, y, policy_current_V, policy_y): # args, etc
     """ heavily inspired by https://github.com/Div99/IQ-Learn/blob/main/iq_learn/iq.py """
     # Notes: (our explanation of what iq loss is doing)
     # the loss takes in 2 points -> 
@@ -115,7 +115,7 @@ def iq_loss(current_Q, current_V, y): # args, etc
     loss = -(phi_grad * reward).mean() # then, loss is POS
 
     # sample using only expert states (works offline)
-    value_loss = (current_V - y).mean() # (0.3 - 0.99 * 0.2) -> POS > reward
+    value_loss = (torch.cat([current_V, policy_current_V]) - torch.cat([y, policy_y])).mean() # (0.3 - 0.99 * 0.2) -> POS > reward
     loss += value_loss # (more POS) (further from 0) :()
 
     return loss

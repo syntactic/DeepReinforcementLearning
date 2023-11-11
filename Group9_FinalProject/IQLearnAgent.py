@@ -57,8 +57,8 @@ class IQLearnAgent(Agent):
         # training after x number of steps instead of after every step
         # TODO think about parameters to control whether the agent is training or testing, etc
 
-        #if self.training:
-            #self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
+        if self.training:
+            self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
             
         # epsilon decay
         if self.epsilon > 0.1:
@@ -67,25 +67,31 @@ class IQLearnAgent(Agent):
             self.epsilon = self.epsilon_floor
 
     def train(self):
-        if self.expert_buffer.size() >= self.batch_size:
+        if self.expert_buffer.size() >= self.batch_size and self.buffer.size() >= self.batch_size: # make half
             state, next_state, action, _, done = self.expert_buffer.get_samples(self.batch_size)
+            policy_state, policy_next_state, policy_action, _, policy_done = self.buffer.get_samples(self.batch_size)
             action = torch.as_tensor(action, dtype=torch.int64, device=self.model.device)
             if action.ndim == 1:
                 action = action.unsqueeze(1)
             done = torch.as_tensor(done, dtype=torch.float, device=self.model.device)
+            policy_done = torch.as_tensor(policy_done, dtype=torch.float, device=self.model.device)
             Q_vals = self.model.get_Q(state)
+            policy_Q_vals = self.model.get_Q(policy_state)
             current_Q = Q_vals.gather(2, action.unsqueeze(1)).squeeze()
             current_V = get_max_Q(Q_vals)
+            policy_current_V = get_max_Q(policy_Q_vals)
             next_V = get_max_Q(self.model.get_Q(next_state))
+            policy_next_V = get_max_Q(self.model.get_Q(policy_next_state))
 
             #  calculate 1st term for IQ loss
             #  -E_(ρ_expert)[Q(s, a) - γV(s')]
             y = (1 - done) * self.gamma * next_V
+            policy_y = (1 - policy_done) * self.gamma * policy_next_V
             #reward = (current_Q - y)#[is_expert]
 
 
             #
-            loss = iq_loss(current_Q, current_V, y)
+            loss = iq_loss(current_Q, current_V, y, policy_current_V, policy_y)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
