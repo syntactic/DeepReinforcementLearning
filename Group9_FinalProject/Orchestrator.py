@@ -5,6 +5,7 @@ from Agent import Agent
 from GridWorld import GridWorld
 from GameWindow import GameWindow
 from utils import *
+from plotting_utils import plot_values_over_index
 import pickle
 
 """
