@@ -39,7 +39,9 @@ The `main.py` script can be run and by default it will train a DQN online over t
     - `-nt NUM_TRAJECTORIES` the number of trajectories from the Pickle to load into the expert buffer. The default size of the buffer is 2048 (timesteps), so if your trajectories average 10 timesteps each, you could fit around 200 trajectories into the buffer. Choosing less will limit the amount of data that is used for training.
 
 Example usage:
+
 `python main.py -rw -rs -t 20000 iq -d expert_data/human_5000_random_walls_random_win_state.pkl -nt 500`
+
 This would train an IQ-Learn agent on data containing 500 trajectories with random walls and random win states. As it's training, the model will be providing actions to a GridWorld of default dimensions (10x10) that have random wall locations and random start state locations. This will continue for 20,000 timesteps. At the end of training, the script will automatically plot:
 - distance ratios per game
 - loss over training steps
