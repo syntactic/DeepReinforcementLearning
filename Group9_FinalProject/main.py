@@ -108,16 +108,7 @@ def main():
         model.format_state = unroll_grid
         model.print()
 
-        ### used to estimate the V map 
-        # The vmap_estimation function expects a 10x10 grid without walls, where the player starts in the bottom 
-        # left corner. This is because the function explictly steps through the gridworld with actions that traverse
-        # every state (basically snaking up and down columns until it reaches the win). However, without a specific
-        # obstacle free arrangement at the beginning of play, the game will end without hittign every state
-
         #model.load('model.pt')
-        #grid_vmap_estimation = GridWorld(10,10, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
-        #model.estimate_value_map(grid_vmap_estimation, save=True)
-
         agent = DQNAgent(model=model, action_space=game.action_space, training=True, batch_size=8, name='dqn')
 
     elif args.agent_type == 'human':
@@ -137,21 +128,6 @@ def main():
 
     
     Path(f"./{agent.name}_{args.timesteps}").mkdir(parents=True, exist_ok=True)
-    if agent.has_model():
-        grid_vmap_estimation = GridWorld(args.width, args.height, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
-        agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"{agent.name}_{args.timesteps}/untrained_")
-        good_dqn_2000_array = np.zeros((10,10))
-        good_dqn_2000_array[0,5] = WALL
-        good_dqn_2000_array[5,3] = WALL
-        good_dqn_2000_array[3,3] = WALL
-        good_dqn_2000_array[4,2] = WALL
-        good_dqn_2000_array[9,7] = WALL
-        good_dqn_2000_array[9,9] = WIN
-        good_dqn_2000_array[0,0] = PLAYER
-        good_dqn_2000_grid = GridWorld.from_state(good_dqn_2000_array, win_state=Position(9,9))
-        good_dqn_2000_grid.random_start=True
-        #agent.model.estimate_reward_map(game, save=True, path=f"{agent.name}_{args.timesteps}/untrained_")
-
 
     # create the orchestrator, which controls the game, with the game and agent objects
     orchestrator = Orchestrator(game=game, agent=agent, num_timesteps=args.timesteps, visualize=visualize_game)
@@ -168,7 +144,8 @@ def main():
     if agent.has_model():
         # plot the model's losses
         agent.model.plot_losses(save=True, path=f"{agent.name}_{args.timesteps}/")
-        agent.model.estimate_reward_map(good_dqn_2000_grid, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
+        grid_vmap_estimation = GridWorld(args.width, args.height, random_board=False,random_start=False, num_walls=0, static_start_pos = Position(0,9), max_moves_per_game=1000)
+        agent.model.estimate_reward_map(grid_vmap_estimation, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
         agent.model.estimate_value_map(grid_vmap_estimation, save=True, path=f"{agent.name}_{args.timesteps}/trained_")
 
 if __name__ == "__main__":
