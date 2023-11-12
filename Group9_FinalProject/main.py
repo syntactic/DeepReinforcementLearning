@@ -67,7 +67,7 @@ def create_argument_parser():
             human, random, DQN, IQ Learn.')
     parser.add_argument('-t', '--timesteps', default=DEFAULT_TIMESTEPS, type=int)
     parser.add_argument('-m', '--max_moves', default=DEFAULT_MAX_MOVES_PER_GAME, type=int)
-    parser.add_argument('-rs', '--random_start', action='store_true', default=True)
+    parser.add_argument('-rs', '--random_start', action='store_true', default=False)
     parser.add_argument('-rw', '--random_walls', action='store_true', default=False)
     parser.add_argument('-rws', '--random_win_state', action='store_true', default=False)
     parser.add_argument('--height', default=DEFAULT_HEIGHT, type=int)
