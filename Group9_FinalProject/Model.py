@@ -53,30 +53,32 @@ class Model():
         # at least one sample for every part of the grid
         state_list = grid.get_full_state_space()
         gamma = 0.9
+        
         i = 0
-        for i in range(len(state_list)): # sample a thousand times?
-            # get player position
-            (y, x) = index_of_value_in_2d_array(state_list[i], PLAYER)
-            grid.reset()
-            grid.player_pos = Position(x, y)
-            grid.generate_grid()
-            # get initial playing boolean 
-            playing = not grid.check_game_over()
-            while playing:
-                state = grid.get_state()
-                Q_vals = self.get_Q([state], no_grad=True).squeeze()
-                action = grid.action_space[np.argmax(Q_vals)]
-                #print(Q_vals, action, Q_vals[action])
-                current_Q = Q_vals[action]
-                next_state, _, game_over = grid.step(action)
-                next_V = get_max_Q(self.get_Q([next_state], no_grad=True))
-                y = (1 - game_over) * gamma * next_V
-                reward = current_Q - y
-                row, col = index_of_value_in_2d_array(next_state, PLAYER)
-                reward_bucket[row][col].append(reward)
+        while i < 100:
+            for j in range(len(state_list)): # sample a thousand times?
+                # get player position
+                (y, x) = index_of_value_in_2d_array(state_list[j], PLAYER)
+                grid.reset()
+                grid.player_pos = Position(x, y)
+                grid.generate_grid()
+                # get initial playing boolean 
+                playing = not grid.check_game_over()
+                while playing:
+                    state = grid.get_state()
+                    Q_vals = self.get_Q([state], no_grad=True).squeeze()
+                    action = grid.action_space[np.argmax(Q_vals)]
+                    #print(Q_vals, action, Q_vals[action])
+                    current_Q = Q_vals[action]
+                    next_state, _, game_over = grid.step(action)
+                    next_V = get_max_Q(self.get_Q([next_state], no_grad=True))
+                    y = (1 - game_over) * gamma * next_V
+                    reward = current_Q - y
+                    row, col = index_of_value_in_2d_array(next_state, PLAYER)
+                    reward_bucket[row][col].append(reward)
 
-                playing = not game_over
-            #i += 1
+                    playing = not game_over
+            i += 1
         for row in range(grid.height):
             for col in range(grid.width):
                 if len(reward_bucket[row][col]) > 0:
@@ -102,7 +104,7 @@ class Model():
                 reward_map[index_of_value_in_2d_array(next_state, PLAYER)] = np.mean(rewards_for_next_state)"""
 
         plot_heatmap(data=reward_map, path=path+self.name + "_reward_map", save=save)
-        np.savetxt(path+self.name + "_reward_map.txt", reward_map, fmt='%8.3f')
+        np.savetxt(path+self.name + "_reward_map.txt", reward_map, fmt='%8.5f')
 
     def estimate_value_map(self,grid,save=False, path=""):
         """ estimates a value map by steping through every available tile in the 
