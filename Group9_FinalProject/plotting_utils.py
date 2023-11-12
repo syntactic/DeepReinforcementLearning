@@ -4,12 +4,15 @@ import matplotlib.pyplot as plt
 import matplotlib
 import matplotlib as mpl
 from matplotlib import colors
+import matplotlib.animation as animation
 plt.rcParams['svg.fonttype'] = 'none'
 
 from utils import Buffer, Position, index_of_value_in_2d_array
 from constants import *
 from GridWorld import GridWorld
 
+# discrete color map to interpret the grid: floor, wall, agent, win
+cmap = colors.ListedColormap(['#CACACA', '#625151', '#E53A3A', '#FFE400'])
 
 def heatmap(data, ax=None,
             cbar_kw=None, cbarlabel="", **kwargs):
@@ -177,8 +180,6 @@ def plot_trajectories(state_list, dones, name="", save=False, save_path=""):
     """ plots line plots of trajectories over the grid """
     assert len(state_list) > 0
 
-    # discrete color map to interpret the grid: floor, wall, agent, win
-    cmap = colors.ListedColormap(['#CACACA', '#625151', '#E53A3A', '#FFE400'])
     fig, ax = plt.subplots(figsize = (7, 7))
 
     # plot the grid as an image
@@ -209,8 +210,23 @@ def plot_trajectories(state_list, dones, name="", save=False, save_path=""):
         ax.plot(y, x)
 
     
+def gen_play_video(state_list, name="example", save_path=""):
+    fig = plt.figure()
 
-        
+    ims = []
+    for i in range(len(state_list)):
+        im = plt.imshow(state_list[i], cmap=cmap, animated=True)
+        ims.append([im])
+        plt.axis('off')
+        plt.tight_layout()
+
+    ani = animation.ArtistAnimation(fig, ims, interval=50, blit=True,
+                                    repeat_delay=1000)
+    
+    writergif = animation.PillowWriter(fps=12)
+
+    ani.save(save_path+name+'.gif', writergif)
+            
 
 
     

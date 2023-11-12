@@ -27,7 +27,7 @@ def get_DQN_params(name='DQN', gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsil
             "batch_size":batch_size, 
             "buffer_max_size":buffer_max_size}
 
-def get_IQ_params(name='IQLearn', gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor=0.1, training=True, training_freq=4, batch_size=32, num_trajectories=50, buffer_max_size=1024, expert_data_path="expert_data/human_5000.pkl"): # 'expert_data/good_dqn_2000.pkl'
+def get_IQ_params(name='IQLearn', gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor=0.1, training=True, training_freq=4, batch_size=32, num_trajectories=300, buffer_max_size=5000, expert_data_path="expert_data/human_5000.pkl"): # 'expert_data/good_dqn_2000.pkl'
     
     """ creates a dictionary of parameters for training an IQLearnAgent """
     return {"name":name, 
@@ -164,14 +164,15 @@ def compare_param_range(agent_type, param_name, param_vals, num_timesteps=20000,
     return all_losses, all_dist_rats
 
 # function to train an agent
-def train_agent(params, grid_shape=(10,10), num_timesteps=20000, testing_freq=50, num_test_games=24, save_path="compare_training_results/"):
+def train_agent(params, grid_shape=(10,10), random_walls=False, random_win_state=False, num_timesteps=20000, testing_freq=50, num_test_games=24, save_path="compare_training_results/", model_name="model"):
     """ train an agent over num_timesteps with a batch size of batch_size"""
     # create the gridworld game
-    grid = GridWorld(width=grid_shape[0], height=grid_shape[1], random_start=True)
+    grid = GridWorld(width=grid_shape[0], height=grid_shape[1], random_board=random_walls, random_win_state=random_win_state, random_start=True)
 
     # make the model
     model = Model(init_grid_model(grid.num_states, grid.action_space))
     model.format_state = unroll_grid
+    model.name = model_name + "_" + str(num_timesteps)
 
     # create the agent based on the agent_type
     agent = create_agent(params, model, grid)
@@ -239,16 +240,9 @@ def train_agent(params, grid_shape=(10,10), num_timesteps=20000, testing_freq=50
     losses = model.loss_bucket
 
     # save model
-    model.save(save_path + model.name+str(num_timesteps))
+    model.save(save_path)
 
     return losses, distance_ratios
-
-def load_pickle_data(filepath):
-    # load in DQN losses and distance ratios
-    with open(filepath, 'rb') as f:
-        return read_file(filepath, f)
-
-# TODO use a write pickle data fun instead of doign it manually elsewhere
 
 def drop_steps(loss_data, steps, whichend="head"):
     if whichend == "head":

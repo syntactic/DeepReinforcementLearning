@@ -173,6 +173,14 @@ def init_grid_model(input_size, action_space):
 
     return model
 
+def load_pickle_data(filepath):
+    with open(filepath, 'rb') as f:
+        return read_file(filepath, f)
+
+def save_pickle_data(data, filepath):
+    with open(filepath, 'wb') as f:
+        pickle.dump(data, f)
+
 def cnn_format(state):
     s = torch.from_numpy(state).float() 
     s = s.unsqueeze(0) 
