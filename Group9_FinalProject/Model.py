@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_max_Q, index_of_value_in_2d_array
+from utils import get_max_Q, index_of_value_in_2d_array, Position
 from plotting_utils import plot_values_over_index, plot_heatmap, save_fig
 import matplotlib.pyplot as plt
 import torch
@@ -48,11 +48,18 @@ class Model():
     def estimate_reward_map(self, grid, save=False, path=""):
         reward_map = np.zeros((grid.width, grid.height))
         reward_bucket = [[[] for i in range(grid.width)] for j in range(grid.height)]
-        #state_list = grid.get_full_state_space()
+
+        # use this to explictly init the player at each position so there is 
+        # at least one sample for every part of the grid
+        state_list = grid.get_full_state_space()
         gamma = 0.9
         i = 0
-        while i < 1000: # sample a thousand times?
+        for i in range(len(state_list)): # sample a thousand times?
+            # get player position
+            (y, x) = index_of_value_in_2d_array(state_list[i], PLAYER)
             grid.reset()
+            grid.player_pos = Position(x, y)
+            grid.generate_grid()
             # get initial playing boolean 
             playing = not grid.check_game_over()
             while playing:
@@ -69,7 +76,7 @@ class Model():
                 reward_bucket[row][col].append(reward)
 
                 playing = not game_over
-            i += 1
+            #i += 1
         for row in range(grid.height):
             for col in range(grid.width):
                 if len(reward_bucket[row][col]) > 0:
