@@ -44,10 +44,6 @@ class DQNAgent(Agent):
     def inform_result(self, next_state, reward, game_over):
         super().inform_result(next_state, reward, game_over)
 
-        # TODO collect information in a buffer to allow for the possibility of 
-        # training after x number of steps instead of after every step
-        # TODO think about parameters to control whether the agent is training or testing, etc
-
         if self.training:
             self.buffer.add((np.copy(self.state), self.action, self.reward, np.copy(self.next_state), self.game_over))
 

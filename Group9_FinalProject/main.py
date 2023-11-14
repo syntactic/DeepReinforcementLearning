@@ -13,18 +13,7 @@ from Model import Model
 from pathlib import Path
 
 import torch
-from constants import WALL, PLAYER, WIN
-
-RANDOM_AGENT = 0
-DQN_AGENT = 1
-HUMAN_AGENT = 2
-IQ_LEARN_AGENT = 3
-
-STATIC_START = 0
-RANDOM_START = 1
-
-STATIC_WALLS = 0
-RANDOM_WALLS = 1
+from constants import *
 
 DEFAULT_TIMESTEPS = 5000
 DEFAULT_MAX_MOVES_PER_GAME = 100
@@ -32,39 +21,13 @@ DEFAULT_NUM_TRAJECTORIES = 100
 DEFAULT_HEIGHT = 10
 DEFAULT_WIDTH = 10
 
-def init_grid_model(input_size, action_space):
-        """ provides an default model for the gridworld problem """
-        l1 = input_size
-        l2 = 150
-        l3 = 100
-        l4 = len(action_space)
- 
-        model = torch.nn.Sequential(
-            torch.nn.Linear(l1, l2),
-            torch.nn.ReLU(),
-            torch.nn.Linear(l2, l3),
-            torch.nn.ReLU(),
-            torch.nn.Linear(l3,l4)
-        )
-
-        return model
-
-def unroll_grid(state):
-    # TODO fix the reshape once we switch to CNN
-    # this is just a temp placeholder
-    if torch.is_tensor(state):
-        state = state.numpy()
-    w, h = state.shape
-    
-    s = state.reshape((1, w*h )) + \
-        np.random.rand(1, w*h)/10.0 
-    s = torch.from_numpy(s).float() 
-    return s
-
 def create_argument_parser():
     parser = argparse.ArgumentParser(prog='GridWorld Player',
             description='Plays gridworld with any of several agent types: \
-            human, random, DQN, IQ Learn.')
+            human, random, DQN, IQ Learn. Without supplying any arguments, \
+            this will train a DQN for 5000 timesteps on a 10x10 GridWorld \
+            in the easiest difficulty: static start state, walls, and win \
+            state.')
     parser.add_argument('-t', '--timesteps', default=DEFAULT_TIMESTEPS, type=int)
     parser.add_argument('-m', '--max_moves', default=DEFAULT_MAX_MOVES_PER_GAME, type=int)
     parser.add_argument('-rs', '--random_start', action='store_true', default=False)

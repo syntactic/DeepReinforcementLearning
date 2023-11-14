@@ -4,19 +4,8 @@ import time
 import matplotlib.pyplot as plt
 from matplotlib import colors
 from utils import *
+from constants import *
 
-
-# tile types
-FLOOR = 0
-WALL = 1
-PLAYER = 2
-WIN = 3
-
-# possible actions
-UP = 0
-RIGHT = 1
-DOWN = 2
-LEFT = 3
 
 class GridWorld:
 
