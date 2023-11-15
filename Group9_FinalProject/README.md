@@ -2,6 +2,11 @@
 This project takes the core algorithmic idea of [IQ-Learn](https://div99.github.io/IQ-Learn) from Garg et al.'s paper [IQ-Learn: Inverse soft-Q Learning for Imitation](https://arxiv.org/abs/2106.12142) and implements it a Python-based GridWorld environment.
 
 Authors: [Celine Aubuchon](https://github.com/celine-aubuchon) and [Timothy Ho](https://github.com/syntactic) 
+
+[Project Report](https://github.com/syntactic/DeepReinforcementLearning/blob/main/Group9_FinalProject/ImplementingInverseQLearning_Aubuchon_Ho.pdf)
+
+[Video Presentation](https://github.com/syntactic/DeepReinforcementLearning/blob/main/Group9_FinalProject/ImplementingInverseQLearning_Aubuchon_Ho.m4v)
+
 ## Features
  - GridWorld with customizable levels of difficulty:
     * width and height parameters
