@@ -181,6 +181,36 @@ def save_pickle_data(data, filepath):
     with open(filepath, 'wb') as f:
         pickle.dump(data, f)
 
+def avg_distance_ratio_from_trajs(state_list, dones):
+    dist_rats = []
+
+    i = 0
+    get_positions = True
+    for j in range(len(state_list)):
+        if get_positions:
+            #get initial positions of the player and win
+            (py, px) = index_of_value_in_2d_array(state_list[j], PLAYER)
+            (wy, wx) = index_of_value_in_2d_array(state_list[j], WIN)
+            dist = abs(px - wx) + abs(py - wy)
+            get_positions = False
+        else:
+            # tally up a move
+            i+=1
+        if dones[j]:
+            # to account for 1 move until win
+            i+=1
+            dist_rats.append(i/dist)
+
+            # reset for the next game
+            i = 0
+            get_positions = True
+        
+    return np.mean(np.array(dist_rats)), np.std(np.array(dist_rats))
+
+
+
+
+
 def cnn_format(state):
     s = torch.from_numpy(state).float() 
     s = s.unsqueeze(0) 
