@@ -54,3 +54,20 @@ This would train an IQ-Learn agent on data containing 500 trajectories with rand
 - value map over the GridWorld
 - reward map (using the inferred reward from IQ-Learn's loss function) over the GridWorld
 
+Example standard output:
+```
+Playing game 0 ... total moves: 100  (7.1429) game over.
+Playing game 1 ... total moves: 22  (2.0) game over.
+Playing game 2 ... total moves: 100  (6.6667) game over.
+Playing game 3 ... total moves: 17  (2.8333) game over.
+Playing game 4 ... total moves: 19  (1.1176) game over.
+Playing game 5 ... total moves: 15  (1.3636) game over.
+...
+Playing game 2118 ... total moves: 16  (1.3333) game over.
+Playing game 2119 ... total moves: 12  (1.0909) game over.
+Playing game 2120 ... total moves: 24  (1.5) game over.
+Playing game 2121 ... total moves: 18  (1.125) game over.
+Playing game 2122 ... total moves: 11  (2.2) game over.
+Playing game 2123 ... total moves: 16  (1.6) game over.
+Playing game 2124 ... total moves: 20  (1.4286) game over.
+```
