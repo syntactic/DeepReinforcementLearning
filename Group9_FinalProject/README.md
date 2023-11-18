@@ -23,6 +23,7 @@ Authors: [Celine Aubuchon](https://github.com/celine-aubuchon) and [Timothy Ho](
 - trajectory saving 
 - GUI for interactive playing and model visualization
 - plotting and analysis scripts
+- basic test suite (test*.py files) primarily for testing GridWorld, Buffer, and Agent classes
 
 ## Requirements
 - numpy

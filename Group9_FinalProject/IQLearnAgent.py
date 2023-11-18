@@ -7,6 +7,11 @@ from Agent import Agent
 from utils import Buffer, iq_loss, get_max_Q
 
 class IQLearnAgent(Agent):
+    """ The IQLearnAgent is nearly the same as the DQNAgent but it uses the
+    IQ Loss loss function instead of the standard MSE loss. It also uses an
+    expert buffer instead of a regular buffer that would be loaded online.
+    The regular buffer is available but currently unused. Online training
+    is enabled on another branch. """
     def __init__(self, action_space:np.ndarray, model, name:str = "IQLearn", gamma=0.9, epsilon=1.0, epsilon_decay=0.97, epsilon_floor = 0.1, training=True, training_freq=4, batch_size=8):
         super().__init__(action_space)
         self.name = name
@@ -41,6 +46,7 @@ class IQLearnAgent(Agent):
             # get qval from the model
             qval_tensor = self.model.get_Q([self.state]).squeeze()
             qval = qval_tensor.data.numpy() 
+            # the following temperature is identical to the author's implementation
             dist = F.softmax(qval_tensor/0.01)
             dist = Categorical(dist)
             action = dist.sample()
@@ -83,8 +89,6 @@ class IQLearnAgent(Agent):
             y = (1 - done) * self.gamma * next_V
             #reward = (current_Q - y)#[is_expert]
 
-
-            #
             loss = iq_loss(current_Q, current_V, y)
             self.optimizer.zero_grad()
             loss.backward()

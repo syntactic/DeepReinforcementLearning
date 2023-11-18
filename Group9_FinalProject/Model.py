@@ -7,6 +7,10 @@ from constants import *
 from GridWorld import GridWorld
 
 class Model():
+    """The Model class is a wrapper for a PyTorch model. It contains the PyTorch
+    model itself, a preprocessing function, and a loss tracker. It also contains
+    several helper functions to help assess what the model learned. """
+
     def __init__(self, model, name="model"):
         self.model = model
         self.name = name
@@ -15,6 +19,7 @@ class Model():
         self.device = 'cpu'
     
     def get_Q(self, states, no_grad=False):
+        """ Preprocesses batches of states and returns Q values """
 
         states = [self.format_state(state) for state in states]
         batch_states = np.array(states)
@@ -46,6 +51,9 @@ class Model():
         print(self.model)
 
     def estimate_reward_map(self, grid, save=False, path=""):
+        """ Estimates rewards by running through games and deducing rewards 
+        from the Q values of a trained model. Reward for a state is the expected
+        value of reward sampling actions to that state from a policy. """
         reward_map = np.zeros((grid.width, grid.height))
         reward_bucket = [[[] for i in range(grid.width)] for j in range(grid.height)]
 

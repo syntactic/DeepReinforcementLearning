@@ -60,6 +60,8 @@ class Buffer():
             raise ValueError(f"{filepath} is not a valid path")
 
 class Position:
+    """Helper class for coupling x and y values in a GridWorld."""
+
     def __init__(self, x, y):
         self.x=x
         self.y=y
@@ -77,6 +79,16 @@ class Position:
 # traj = [[s, a, r, s'], [s, a, r, s'], ...]
 # trajectories = [[[s, a, r, s'], [s, a, r, s'], ...], [...], [...], ...]
 def split_trajectories(trajectories):
+    """ Helper function that takes trajectories and splits them up into 
+    their individual components.
+
+    Parameters:
+    trajectories: List of timestep lists
+
+    Returns:
+    5-tuple of states, actions, rewards, next states, and dones
+
+   """
     num_trajectories = len(trajectories)
     states = [[step[0] for step in trajectories[i]] for i in range(num_trajectories)]
     actions = [[step[1] for step in trajectories[i]] for i in range(num_trajectories)]
@@ -208,9 +220,7 @@ def avg_distance_ratio_from_trajs(state_list, dones):
     return np.mean(np.array(dist_rats)), np.std(np.array(dist_rats))
 
 
-
-
-
+# unused CNN code left over from early attempts at using a CNN
 def cnn_format(state):
     s = torch.from_numpy(state).float() 
     s = s.unsqueeze(0) 

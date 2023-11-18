@@ -25,7 +25,6 @@ Basic idea: feed it an agent, a game, and a number of games to play
 - some possible parameters: 
     - fixed/random game boards (or maybe that should be set as part of the GridWorld class)
 """
-# TODO , get rid of agent.save_results etc and the methods within Agent
 class Orchestrator:
 
     def __init__(self, game:GridWorld, agent:Agent, num_timesteps:int, visualize:bool=False, until_game:bool=False, until_game_limit:int=1000):
