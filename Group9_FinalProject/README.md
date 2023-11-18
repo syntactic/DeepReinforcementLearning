@@ -71,3 +71,6 @@ Playing game 2122 ... total moves: 11  (2.2) game over.
 Playing game 2123 ... total moves: 16  (1.6) game over.
 Playing game 2124 ... total moves: 20  (1.4286) game over.
 ```
+
+Example of IQ-Learn trained model during gameplay:
+![IQ-Learn trained model playing a GridWorld with random walls and random start positions](https://github.com/syntactic/DeepReinforcementLearning/blob/main/Group9_FinalProject/play_videos/IQLearn_rand_walls_testing.gif?raw=true)
